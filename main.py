@@ -247,7 +247,7 @@ class ScanRequest(BaseModel):
 def evaluate(scan: ScanRequest):
     findings = []
     for rule in RULES:
-        if rule["jurisdiction"] not in scan.jurisdictions:
+        if rule["jurisdiction"] != "GLOBAL" and rule["jurisdiction"] not in scan.jurisdictions:
             continue
         match = True
         for field, expected in rule["trigger"].items():
