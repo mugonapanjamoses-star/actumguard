@@ -214,9 +214,24 @@ RULES = [
             "Apply fair-information principles to automated decisions.",
             "Provide meaningful information about the logic.",
             "Monitor for any replacement federal AI framework."
+        },
+{
+    "id": "GENERAL-BASELINE",
+    "jurisdiction": "GLOBAL",
+    "law": "General AI Governance",
+    "trigger": {"uses_chatbots": True},
+    "severity": "medium",
+    "title": "No formal AI policy documented",
+    "detail": "You are deploying AI agents/chatbots. Regardless of specific local laws, standard business practice requires an acceptable-use policy and human oversight.",
+    "remediation": [
+        "Create an AI Acceptable Use Policy for employees.",
+        "Document who is responsible for reviewing AI outputs.",
+        "Maintain a list of all AI tools used in the business."
         ]
-    },
+    }
 ]
+    
+
 
 class ScanRequest(BaseModel):
     email: str
@@ -314,7 +329,7 @@ button{width:100%;padding:14px;border:none;border-radius:8px;background:#4f8cff;
 <option>Other</option>
 </select>
 
-<label>Where do you operate?</label>
+<label>Where do you operate? (Select at least one)</label>
 <div class="chk"><input type="checkbox" class="jur" value="ZA"/> South Africa</div>
 <div class="chk"><input type="checkbox" class="jur" value="EU"/> European Union</div>
 <div class="chk"><input type="checkbox" class="jur" value="US-CO"/> Colorado (US)</div>
