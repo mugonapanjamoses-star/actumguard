@@ -353,10 +353,10 @@
 function payWithPaystack(amount, planName) {
     const paystack = new PaystackPop();
     paystack.newTransaction({
-        key: 'pk_test_c77eb2b404c47451da4fcf75364a336d4baaa9e3', // <--- REPLACE THIS WITH YOUR ACTUAL PAYSTACK PUBLIC KEY
-        email: 'customer@example.com', // In a full app, we pull this from a form input
-        amount: amount, 
-        currency: 'ZAR',
+    key: 'pk_test_c77eb2b404c47451da4fcf75...', 
+    email: prompt("Please enter your email address for your receipt:", ""),
+    amount: amount,
+    currency: 'ZAR',
         metadata: {
             custom_fields: [
                 { display_name: "Product", variable_name: "product", value: planName }
