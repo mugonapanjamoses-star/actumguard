@@ -1,7 +1,5 @@
 """
 ActumGuard MVP — single-file backend
-Free AI Risk Scan + email capture + rules engine.
-Deploy on Render free tier. No login required for the free scan.
 """
 
 from fastapi import FastAPI, Request
@@ -31,7 +29,6 @@ def init_db():
         c.commit()
 init_db()
 
-# ---------------- RULES REGISTRY (MVP SUBSET) ----------------
 RULES = [
     {
         "id": "EU-AI-ACT-ART-50",
@@ -214,24 +211,23 @@ RULES = [
             "Apply fair-information principles to automated decisions.",
             "Provide meaningful information about the logic.",
             "Monitor for any replacement federal AI framework."
-        },
-{
-    "id": "GENERAL-BASELINE",
-    "jurisdiction": "GLOBAL",
-    "law": "General AI Governance",
-    "trigger": {"uses_chatbots": True},
-    "severity": "medium",
-    "title": "No formal AI policy documented",
-    "detail": "You are deploying AI agents/chatbots. Regardless of specific local laws, standard business practice requires an acceptable-use policy and human oversight.",
-    "remediation": [
-        "Create an AI Acceptable Use Policy for employees.",
-        "Document who is responsible for reviewing AI outputs.",
-        "Maintain a list of all AI tools used in the business."
+        ]
+    },
+    {
+        "id": "GENERAL-BASELINE",
+        "jurisdiction": "GLOBAL",
+        "law": "General AI Governance",
+        "trigger": {"uses_chatbots": True},
+        "severity": "medium",
+        "title": "No formal AI policy documented",
+        "detail": "You are deploying AI agents/chatbots. Regardless of specific local laws, standard business practice requires an acceptable-use policy and human oversight.",
+        "remediation": [
+            "Create an AI Acceptable Use Policy for employees.",
+            "Document who is responsible for reviewing AI outputs.",
+            "Maintain a list of all AI tools used in the business."
         ]
     }
 ]
-    
-
 
 class ScanRequest(BaseModel):
     email: str
