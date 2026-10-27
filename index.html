@@ -56,7 +56,7 @@
   /* Hero Section */
   .hero {
     max-width: 800px;
-    margin: 60px auto 40px;
+    margin: 50px auto 40px;
     padding: 0 24px;
     text-align: center;
   }
@@ -93,6 +93,16 @@
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
   }
+  .trust-badges {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+  }
+  .trust-badges span { display: flex; align-items: center; gap: 4px; }
 
   /* Flow Section */
   .flow {
@@ -109,7 +119,9 @@
     border-radius: 12px;
     border: 1px solid var(--border);
     text-align: center;
+    transition: transform 0.2s;
   }
+  .step:hover { transform: translateY(-4px); border-color: #374151; }
   .step-num {
     display: inline-flex;
     align-items: center;
@@ -132,7 +144,7 @@
     padding: 0 24px;
   }
   .pricing-header { text-align: center; margin-bottom: 48px; }
-  .pricing-header h2 { font-size: 32px; margin-bottom: 12px; }
+  .pricing-header h2 { font-size: 32px; margin-bottom: 12px; letter-spacing: -1px; }
   .pricing-header p { color: var(--text-muted); }
   
   .pricing-grid {
@@ -147,7 +159,7 @@
     border-radius: 16px;
     padding: 32px;
     position: relative;
-    transition: border-color 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
   .tier:hover { border-color: #374151; }
   .tier.popular {
@@ -195,6 +207,8 @@
     border: 1px solid var(--primary);
     background: transparent;
     color: var(--primary);
+    text-align: center;
+    display: block;
   }
   .tier.popular .btn-tier {
     background: var(--primary);
@@ -213,7 +227,7 @@
     border-bottom: 1px solid var(--border);
     padding: 20px 0;
   }
-  .faq-item h3 { font-size: 16px; margin-bottom: 8px; }
+  .faq-item h3 { font-size: 16px; margin-bottom: 8px; color: var(--text-main); }
   .faq-item p { font-size: 14px; color: var(--text-muted); }
 
   /* Footer */
@@ -225,7 +239,7 @@
     font-size: 12px;
     margin-top: 80px;
   }
-  footer p { max-width: 600px; margin: 0 auto; }
+  footer p { max-width: 600px; margin: 0 auto; margin-bottom: 10px; }
 </style>
 </head>
 <body>
@@ -243,7 +257,11 @@
   <h1>Your team is using AI.<br>Can you prove it's <span>safe</span>?</h1>
   <p>ActumGuard scans your business against POPIA, the EU AI Act, and 10 other jurisdictions in 5 minutes. Find the hidden risks before your clients or regulators do.</p>
   <a href="https://actumguard.onrender.com" class="btn-hero">Run the Free Risk Scan</a>
-  <p style="font-size: 12px; margin-top: 12px; color: var(--text-muted);">No credit card required. Takes 5 minutes.</p>
+  <div class="trust-badges">
+    <span>✅ POPIA Ready</span>
+    <span>✅ EU AI Act Mapped</span>
+    <span>✅ No Credit Card Required</span>
+  </div>
 </div>
 
 <div class="flow">
@@ -286,7 +304,9 @@
         <li>Instant directional risk score</li>
         <li>List of applicable laws</li>
       </ul>
-      <a href="https://actumguard.onrender.com"><button class="btn-tier">Start Free</button></a>
+      <a href="https://actumguard.onrender.com" style="text-decoration:none;">
+        <button class="btn-tier">Start Free</button>
+      </a>
     </div>
 
     <!-- Starter Pack -->
@@ -304,7 +324,7 @@
       <button class="btn-tier" onclick="payWithPaystack(89900, 'Starter Pack')">Buy Now</button>
     </div>
 
-    <!-- Pro Software -->
+    <!-- Pro Software (Waitlist) -->
     <div class="tier">
       <h3>Pro Software</h3>
       <div class="price-amount">R1,799 <span>/ $99/mo</span></div>
@@ -315,7 +335,9 @@
         <li><b>Unlimited Assessments:</b> Whole business</li>
         <li><b>Board-Ready Reports:</b> Monthly PDF exports</li>
       </ul>
-      <button class="btn-tier" onclick="payWithPaystack(179900, 'Pro Subscription')">Start Pro</button>
+      <a href="mailto:mugonapanjamoses@gmail.com?subject=ActumGuard%20Pro%20Waitlist%20Request&body=Hi%20Moses,%20I%20am%20interested%20in%20joining%20the%20waitlist%20for%20ActumGuard%20Pro.%20My%20company%20is%20_____" style="text-decoration: none;">
+        <button class="btn-tier">Join Waitlist</button>
+      </a>
     </div>
   </div>
 </div>
@@ -353,10 +375,10 @@
 function payWithPaystack(amount, planName) {
     const paystack = new PaystackPop();
     paystack.newTransaction({
-    key: 'pk_test_c77eb2b404c47451da4fcf75364a336d4baaa9e3', 
-    email: prompt("Please enter your email address for your receipt:", ""),
-    amount: amount,
-    currency: 'ZAR',
+        key: 'pk_test_c77eb2b404c47451da4fcf75364a336d4baaa9e3', // <--- REPLACE THIS WITH YOUR ACTUAL PAYSTACK PUBLIC KEY
+        email: prompt("Please enter your email address for your receipt:", ""),
+        amount: amount, 
+        currency: 'ZAR',
         metadata: {
             custom_fields: [
                 { display_name: "Product", variable_name: "product", value: planName }
@@ -372,4 +394,4 @@ function payWithPaystack(amount, planName) {
 }
 </script>
 </body>
-</html>
+  </html>
