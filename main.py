@@ -254,6 +254,48 @@ RULES = [
             "Create an AI Acceptable Use Policy.",
             "Document human escalation paths."
         ]
+    },
+    {
+        "id": "GENERAL-SENSITIVE-DATA-BASELINE",
+        "jurisdiction": "GLOBAL",
+        "law": "General AI Governance",
+        "trigger": {"collects_sensitive_data": True},
+        "severity": "high",
+        "title": "Sensitive Data AI Processing Risk",
+        "detail": "You use AI to process sensitive personal data. This is a high-risk category in almost all jurisdictions (GDPR, POPIA, HIPAA, etc.) and requires strict data protection impact assessments.",
+        "remediation": [
+            "Conduct a Data Protection Impact Assessment (DPIA).",
+            "Ensure data minimization and encryption.",
+            "Verify vendor data processing agreements."
+        ]
+    },
+    {
+        "id": "GENERAL-VENDOR-CONTRACTS-MISSING",
+        "jurisdiction": "GLOBAL",
+        "law": "General AI Governance",
+        "trigger": {"has_vendor_contracts": False},
+        "severity": "medium",
+        "title": "Missing AI Vendor Contracts",
+        "detail": "You indicated you do not have written contracts with your AI vendors. You are exposed to data breaches, IP loss, and vendor lock-in without proper terms.",
+        "remediation": [
+            "Use a standard AI Vendor Questionnaire.",
+            "Ensure all vendors sign Data Processing Agreements (DPAs).",
+            "Review vendor terms for training data usage."
+        ]
+    },
+    {
+        "id": "GENERAL-HUMAN-REVIEW-MISSING",
+        "jurisdiction": "GLOBAL",
+        "law": "General AI Governance",
+        "trigger": {"has_human_review_process": False},
+        "severity": "medium",
+        "title": "Missing Human Review Process",
+        "detail": "You do not have a documented human-review process for adverse AI outcomes. This is a core requirement for most compliance frameworks and a major liability risk.",
+        "remediation": [
+            "Define which AI decisions require human sign-off.",
+            "Document the escalation path for adverse outcomes.",
+            "Train staff on when to override AI."
+        ]
     }
 ]
 
