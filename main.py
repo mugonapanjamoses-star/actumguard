@@ -5,7 +5,7 @@ ActumGuard MVP — single-file backend
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
-import sqlite3, os, json
+import sqlite3, os, json, hmac, hashlib
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -214,17 +214,45 @@ RULES = [
         ]
     },
     {
-        "id": "GENERAL-BASELINE",
+        "id": "GENERAL-EMPLOYMENT-BASELINE",
+        "jurisdiction": "GLOBAL",
+        "law": "General AI Governance",
+        "trigger": {"uses_ai_in_employment": True},
+        "severity": "medium",
+        "title": "Hiring AI requires human oversight",
+        "detail": "You use AI in hiring or termination. Regardless of your specific jurisdiction, standard risk management requires a human to review adverse decisions and a documented policy on AI screening.",
+        "remediation": [
+            "Document every AI tool used in hiring.",
+            "Ensure a human reviews any AI-rejected candidate.",
+            "Create an AI Acceptable Use Policy for HR."
+        ]
+    },
+    {
+        "id": "GENERAL-CONSUMER-BASELINE",
+        "jurisdiction": "GLOBAL",
+        "law": "General AI Governance",
+        "trigger": {"uses_ai_for_consumer_decisions": True},
+        "severity": "medium",
+        "title": "Consumer AI decisions need transparency",
+        "detail": "You use AI to make or influence consumer decisions. Standard practice requires you to be able to explain how those decisions are made and provide a way for consumers to appeal.",
+        "remediation": [
+            "Document the data used to make automated decisions.",
+            "Provide a clear appeals process for customers.",
+            "Maintain an AI system inventory."
+        ]
+    },
+    {
+        "id": "GENERAL-CHATBOT-BASELINE",
         "jurisdiction": "GLOBAL",
         "law": "General AI Governance",
         "trigger": {"uses_chatbots": True},
         "severity": "medium",
-        "title": "No formal AI policy documented",
-        "detail": "You are deploying AI agents/chatbots. Regardless of specific local laws, standard business practice requires an acceptable-use policy and human oversight.",
+        "title": "Chatbot transparency required",
+        "detail": "You deploy chatbots or AI agents. Standard business practice requires disclosing to users that they are interacting with AI.",
         "remediation": [
-            "Create an AI Acceptable Use Policy for employees.",
-            "Document who is responsible for reviewing AI outputs.",
-            "Maintain a list of all AI tools used in the business."
+            "Add an AI disclosure notice to your chatbot.",
+            "Create an AI Acceptable Use Policy.",
+            "Document human escalation paths."
         ]
     }
 ]
@@ -277,6 +305,39 @@ def scan(req: ScanRequest):
 @app.get("/health")
 def health():
     return {"status": "ok", "app": "ActumGuard"}
+
+@app.post("/api/webhooks/paystack")
+async def paystack_webhook(request: Request):
+    signature = request.headers.get('x-paystack-signature', '')
+    if not signature:
+        return JSONResponse(status_code=400, content={"message": "Missing signature"})
+
+    body = await request.body()
+    secret_key = os.getenv("PAYSTACK_SECRET_KEY", "sk_test_YOUR_SECRET_KEY")
+    
+    computed_hash = hmac.new(
+        secret_key.encode('utf-8'),
+        msg=body,
+        digestmod=hashlib.sha512
+    ).hexdigest()
+
+    if not hmac.compare_digest(computed_hash, signature):
+        return JSONResponse(status_code=400, content={"message": "Invalid signature"})
+
+    event = json.loads(body)
+    if event.get('event') == 'charge.success':
+        data = event.get('data', {})
+        customer_email = data.get('customer', {}).get('email')
+        amount = data.get('amount')
+        
+        with sqlite3.connect(DB) as c:
+            c.execute("INSERT INTO leads (email, industry, jurisdictions, risk_score, exposure, created_at) VALUES (?,?,?,?,?,?)",
+                      (customer_email, "PAID_CUSTOMER", "[]", 0, "PAID", datetime.now(timezone.utc).isoformat()))
+            c.commit()
+            
+        print(f"💰 PAYMENT SUCCESS: {customer_email} paid {amount/100} ZAR.")
+
+    return JSONResponse(content={"status": "success"})
 
 @app.get("/", response_class=HTMLResponse)
 def home():
@@ -376,6 +437,15 @@ async function run(){
     <p style="font-size:13px">${f.detail}</p>
     <p style="font-size:13px;color:#38c98a"><strong>Fix it:</strong> ${f.remediation.join(' · ')}</p></div>`;
   });
+  html += `
+  <div style="margin-top: 20px; padding: 12px; background: #0b1020; border-radius: 8px; border: 1px solid #2a3450;">
+    <p style="font-size: 12px; color: #8a94a8; margin: 0;">
+      <b>How this score works:</b> We evaluated your 8 parameters (Industry, Jurisdictions, Hiring AI, Consumer AI, Sensitive Data, Chatbots, Vendor Contracts, Human Review) against our database of active laws. 
+      <br><br>
+      <b>Low (1-2):</b> Baseline policy needed. <b>Medium (3-5):</b> Gaps in transparency. <b>High (6-9):</b> Immediate compliance risk. <b>Critical (10+):</b> Urgent legal intervention required.
+    </p>
+  </div>
+  `;
   html+='</div>';
   document.getElementById('out').innerHTML=html;
 }
