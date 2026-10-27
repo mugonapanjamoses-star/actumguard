@@ -321,7 +321,16 @@
         <li><b>Vendor Questionnaire:</b> 10 critical questions</li>
         <li><b>30-Day Plan:</b> Step-by-step implementation</li>
       </ul>
-      <button class="btn-tier" onclick="payWithPaystack(89900, 'Starter Pack')">Buy Now</button>
+      
+      <!-- WHOP CHECKOUT LINK HERE -->
+      <a href="https://whop.com/actumguard-live-pages-dev/actumguard-starter-pack" target="_blank" style="text-decoration: none; display: block; margin-bottom: 12px;">
+        <button class="btn-tier" style="width: 100%;">Buy Instantly (Card)</button>
+      </a>
+      
+      <!-- EFT INVOICE LINK HERE -->
+      <a href="mailto:mugonapanjamoses@gmail.com?subject=ActumGuard%20Starter%20Pack%20-%20EFT%20Request&body=Hi%20Moses,%20I%20would%20like%20to%20purchase%20the%20ActumGuard%20Starter%20Pack%20(R899)%20via%20EFT.%20Please%20send%20me%20your%20banking%20details%20and%20an%20invoice." style="text-decoration: none; display: block; text-align: center; font-size: 13px; color: var(--text-muted); text-decoration: underline;">
+        Prefer EFT? Request an invoice
+      </a>
     </div>
 
     <!-- Pro Software (Waitlist) -->
@@ -375,7 +384,7 @@
 function payWithPaystack(amount, planName) {
     const paystack = new PaystackPop();
     paystack.newTransaction({
-        key: 'pk_test_c77eb2b404c47451da4fcf75364a336d4baaa9e3', // <--- REPLACE THIS WITH YOUR ACTUAL PAYSTACK PUBLIC KEY
+        key: 'pk_test_c77eb2b404c47451da4fcf75364a336d4baaa9e3 it', // <--- REPLACE THIS WITH YOUR ACTUAL PAYSTACK PUBLIC KEY
         email: prompt("Please enter your email address for your receipt:", ""),
         amount: amount, 
         currency: 'ZAR',
@@ -394,4 +403,4 @@ function payWithPaystack(amount, planName) {
 }
 </script>
 </body>
-  </html>
+</html>
