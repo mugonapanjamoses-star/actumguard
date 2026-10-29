@@ -3,293 +3,76 @@
 <head>
 <meta charset="utf-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>ActumGuard — AI Governance for SMBs</title>
+<title>ActumGuard — Defensible AI Governance for SMBs</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
 <script src="https://js.paystack.co/v2/inline.js"></script>
 <style>
-  :root {
-    --bg: #070b14;
-    --surface: #111827;
-    --surface-hover: #1f2937;
-    --text-main: #f3f4f6;
-    --text-muted: #9ca3af;
-    --primary: #3b82f6;
-    --primary-hover: #2563eb;
-    --border: #1f2937;
-    --danger: #ef4444;
-    --success: #10b981;
-  }
+  :root { --bg: #070b14; --surface: #111827; --text-main: #f3f4f6; --text-muted: #9ca3af; --primary: #3b82f6; --primary-hover: #2563eb; --border: #1f2937; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    background-color: var(--bg);
-    color: var(--text-main);
-    line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
-  }
-  
-  /* Urgency Banner */
-  .banner {
-    background: linear-gradient(90deg, #1e3a8a, #3b82f6);
-    color: white;
-    text-align: center;
-    padding: 8px 16px;
-    font-size: 13px;
-    font-weight: 600;
-    letter-spacing: 0.5px;
-  }
-
-  /* Navigation */
-  nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 24px;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
+  body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); line-height: 1.6; }
+  .banner { background: linear-gradient(90deg, #1e3a8a, #3b82f6); text-align: center; padding: 8px; font-size: 13px; font-weight: 600; }
+  nav { display: flex; justify-content: space-between; align-items: center; padding: 20px; max-width: 1100px; margin: 0 auto; }
   .logo { font-weight: 800; font-size: 22px; letter-spacing: -1px; }
   .logo span { color: var(--primary); }
-
-  /* Hero Section */
-  .hero {
-    max-width: 800px;
-    margin: 50px auto 40px;
-    padding: 0 24px;
-    text-align: center;
-  }
-  .hero h1 {
-    font-size: clamp(36px, 6vw, 56px);
-    font-weight: 800;
-    line-height: 1.1;
-    letter-spacing: -1.5px;
-    margin-bottom: 24px;
-  }
+  .hero { max-width: 800px; margin: 50px auto; padding: 0 24px; text-align: center; }
+  .hero h1 { font-size: clamp(36px, 6vw, 56px); font-weight: 800; line-height: 1.1; margin-bottom: 24px; }
   .hero h1 span { color: var(--primary); }
-  .hero p {
-    font-size: clamp(16px, 2vw, 20px);
-    color: var(--text-muted);
-    max-width: 600px;
-    margin: 0 auto 32px;
-  }
-  .btn-hero {
-    display: inline-block;
-    background: var(--primary);
-    color: white;
-    padding: 16px 32px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 16px;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
-    border: none;
-    cursor: pointer;
-  }
-  .btn-hero:hover {
-    background: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
-  }
-  .trust-badges {
-    display: flex;
-    justify-content: center;
-    gap: 16px;
-    margin-top: 16px;
-    font-size: 12px;
-    color: var(--text-muted);
-    flex-wrap: wrap;
-  }
-  .trust-badges span { display: flex; align-items: center; gap: 4px; }
-
-  /* Flow Section */
-  .flow {
-    max-width: 1000px;
-    margin: 60px auto;
-    padding: 0 24px;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 24px;
-  }
-  .step {
-    background: var(--surface);
-    padding: 24px;
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    text-align: center;
-    transition: transform 0.2s;
-  }
-  .step:hover { transform: translateY(-4px); border-color: #374151; }
-  .step-num {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    background: rgba(59, 130, 246, 0.1);
-    color: var(--primary);
-    border-radius: 50%;
-    font-weight: 700;
-    margin-bottom: 16px;
-  }
-  .step h3 { font-size: 16px; margin-bottom: 8px; }
-  .step p { font-size: 13px; color: var(--text-muted); }
-
-  /* Pricing Section */
-  .pricing {
-    max-width: 1000px;
-    margin: 80px auto;
-    padding: 0 24px;
-  }
+  .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto 32px; }
+  .btn-hero { display: inline-block; background: var(--primary); color: white; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; text-decoration: none; transition: 0.2s; border: none; cursor: pointer; }
+  .btn-hero:hover { background: var(--primary-hover); transform: translateY(-2px); }
+  .why-section { max-width: 1000px; margin: 80px auto; padding: 0 24px; }
+  .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
+  .why-card { background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); }
+  .why-card h3 { color: var(--primary); margin-bottom: 12px; font-size: 18px; }
+  .pricing { max-width: 1000px; margin: 80px auto; padding: 0 24px; }
   .pricing-header { text-align: center; margin-bottom: 48px; }
-  .pricing-header h2 { font-size: 32px; margin-bottom: 12px; letter-spacing: -1px; }
-  .pricing-header p { color: var(--text-muted); }
-  
-  .pricing-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 24px;
-    align-items: start;
-  }
-  .tier {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 32px;
-    position: relative;
-    transition: border-color 0.2s, box-shadow 0.2s;
-  }
-  .tier:hover { border-color: #374151; }
-  .tier.popular {
-    border-color: var(--primary);
-    box-shadow: 0 0 30px rgba(59, 130, 246, 0.15);
-  }
-  .popular-badge {
-    position: absolute;
-    top: -12px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--primary);
-    color: white;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 4px 12px;
-    border-radius: 20px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; align-items: start; }
+  .tier { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; position: relative; }
+  .tier.popular { border-color: var(--primary); box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
+  .popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
   .price-amount { font-size: 36px; font-weight: 800; margin: 16px 0; }
-  .price-amount span { font-size: 14px; font-weight: 400; color: var(--text-muted); }
   .features { list-style: none; margin: 24px 0; }
-  .features li {
-    font-size: 14px;
-    color: var(--text-muted);
-    margin-bottom: 12px;
-    display: flex;
-    align-items: flex-start;
-  }
-  .features li::before {
-    content: '✓';
-    color: var(--primary);
-    margin-right: 8px;
-    font-weight: bold;
-  }
-  .btn-tier {
-    width: 100%;
-    padding: 14px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 15px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 1px solid var(--primary);
-    background: transparent;
-    color: var(--primary);
-    text-align: center;
-    display: block;
-  }
-  .tier.popular .btn-tier {
-    background: var(--primary);
-    color: white;
-  }
-  .btn-tier:hover { background: var(--primary); color: white; }
-
-  /* FAQ Section */
-  .faq {
-    max-width: 800px;
-    margin: 80px auto;
-    padding: 0 24px;
-  }
-  .faq h2 { text-align: center; margin-bottom: 32px; font-size: 28px; }
-  .faq-item {
-    border-bottom: 1px solid var(--border);
-    padding: 20px 0;
-  }
-  .faq-item h3 { font-size: 16px; margin-bottom: 8px; color: var(--text-main); }
-  .faq-item p { font-size: 14px; color: var(--text-muted); }
-
-  /* Footer */
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 40px 24px;
-    text-align: center;
-    color: var(--text-muted);
-    font-size: 12px;
-    margin-top: 80px;
-  }
-  footer p { max-width: 600px; margin: 0 auto; margin-bottom: 10px; }
+  .features li { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: flex-start; }
+  .features li::before { content: '✓'; color: var(--primary); margin-right: 8px; font-weight: bold; }
+  .btn-tier { width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; border: 1px solid var(--primary); background: transparent; color: var(--primary); display: block; margin-bottom: 10px; text-align: center; }
+  .tier.popular .btn-tier { background: var(--primary); color: white; }
+  footer { border-top: 1px solid var(--border); padding: 40px 24px; text-align: center; color: var(--text-muted); font-size: 12px; }
 </style>
 </head>
 <body>
 
-<div class="banner">
-  ⚠️ EU AI Act Article 50 Transparency Rules Apply from August 2, 2026.
-</div>
+<div class="banner">⚠️ Don't lose your next enterprise contract. Get RFP-ready for AI compliance.</div>
 
-<nav>
-  <div class="logo">Actum<span>Guard</span>.</div>
-  <a href="#pricing" style="color: var(--text-main); text-decoration: none; font-size: 14px; font-weight: 600;">Pricing</a>
-</nav>
+<nav><div class="logo">Actum<span>Guard</span>.</div></nav>
 
 <div class="hero">
-  <h1>Your team is using AI.<br>Can you prove it's <span>safe</span>?</h1>
-  <p>ActumGuard scans your business against POPIA, the EU AI Act, and 10 other jurisdictions in 5 minutes. Find the hidden risks before your clients or regulators do.</p>
-  <a href="https://actumguard.onrender.com" class="btn-hero">Run the Free Risk Scan</a>
-  <div class="trust-badges">
-    <span>✅ POPIA Ready</span>
-    <span>✅ EU AI Act Mapped</span>
-    <span>✅ No Credit Card Required</span>
-  </div>
+  <h1>Your clients are asking for AI policies.<br>Can you prove you have one?</h1>
+  <p>ChatGPT can write a generic document. ActumGuard provides a defensible, jurisdiction-specific audit trail that proves human oversight to regulators, insurers, and enterprise procurement teams.</p>
+  <a href="https://actumguard.onrender.com" class="btn-hero">Run the Free AI Risk Scan</a>
 </div>
 
-<div class="flow">
-  <div class="step">
-    <div class="step-num">1</div>
-    <h3>Scan</h3>
-    <p>Answer 8 questions about your AI tools, data, and hiring processes.</p>
-  </div>
-  <div class="step">
-    <div class="step-num">2</div>
-    <h3>Assess</h3>
-    <p>Get an instant risk score mapped against active global laws.</p>
-  </div>
-  <div class="step">
-    <div class="step-num">3</div>
-    <h3>Remediate</h3>
-    <p>Receive step-by-step checklists to close your compliance gaps.</p>
-  </div>
-  <div class="step">
-    <div class="step-num">4</div>
-    <h3>Prove</h3>
-    <p>Store evidence of human review and vendor checks in your vault.</p>
+<div class="why-section">
+  <h2 style="text-align: center; margin-bottom: 40px;">Why ActumGuard vs. ChatGPT?</h2>
+  <div class="why-grid">
+    <div class="why-card">
+      <h3>1. Audit Trails vs. Text Files</h3>
+      <p>ChatGPT gives you a Word document. ActumGuard gives you an Evidence Vault. We track who approved the policy, when it was deployed, and how employees were trained. If you get audited, a PDF from ChatGPT won't save you. An audit trail will.</p>
+    </div>
+    <div class="why-card">
+      <h3>2. Human-Reviewed Laws</h3>
+      <p>AI hallucinates legal advice. Our rules engine is built on hard-coded, human-reviewed regulatory updates across 12 jurisdictions (POPIA, EU AI Act, US ADMT). We don't guess; we map your specific business behavior to enacted laws.</p>
+    </div>
+    <div class="why-card">
+      <h3>3. Sales Enablement</h3>
+      <p>You aren't buying this to avoid a fine; you're buying this to win contracts. Enterprise clients (like banks and government) will reject your RFP if you can't prove AI governance. ActumGuard gets you RFP-ready in 5 minutes.</p>
+    </div>
   </div>
 </div>
 
 <div class="pricing" id="pricing">
   <div class="pricing-header">
-    <h2>Stop guessing. Start governing.</h2>
+    <h2>Protect your business.</h2>
     <p>Choose the level of protection your business needs.</p>
   </div>
   
@@ -298,15 +81,12 @@
     <div class="tier">
       <h3>Free Risk Scan</h3>
       <div class="price-amount">R0</div>
-      <p style="font-size:14px; color: var(--text-muted); height: 40px;">Understand your baseline exposure.</p>
       <ul class="features">
         <li>8-question AI assessment</li>
         <li>Instant directional risk score</li>
         <li>List of applicable laws</li>
       </ul>
-      <a href="https://actumguard.onrender.com" style="text-decoration:none;">
-        <button class="btn-tier">Start Free</button>
-      </a>
+      <a href="https://actumguard.onrender.com" style="text-decoration:none;"><button class="btn-tier">Start Free</button></a>
     </div>
 
     <!-- Starter Pack -->
@@ -314,93 +94,23 @@
       <div class="popular-badge">Most Popular</div>
       <h3>Starter Pack</h3>
       <div class="price-amount">R899 <span>/ $49</span></div>
-      <p style="font-size:14px; color: var(--text-muted); height: 40px;">The DIY compliance kit.</p>
       <ul class="features">
-        <li><b>AI Inventory Template:</b> Track all tools</li>
-        <li><b>Acceptable Use Policy:</b> Stop shadow AI</li>
-        <li><b>Vendor Questionnaire:</b> 10 critical questions</li>
-        <li><b>30-Day Plan:</b> Step-by-step implementation</li>
+        <li><b>AI Inventory Template</b></li>
+        <li><b>Acceptable Use Policy</b></li>
+        <li><b>Vendor DPA Questionnaire</b></li>
+        <li><b>30-Day Implementation Plan</b></li>
+        <li><b>Evidence Vault setup guide</b></li>
       </ul>
-      
-      <!-- WHOP CHECKOUT LINK HERE -->
-      <a href="https://whop.com/actumguard-live-pages-dev/actumguard-starter-pack/" target="_blank" style="text-decoration: none; display: block; margin-bottom: 12px;">
+      <a href="YOUR_WHOP_CHECKOUT_LINK" target="_blank" style="text-decoration: none;">
         <button class="btn-tier" style="width: 100%;">Buy Instantly (Card)</button>
       </a>
-      
-      <!-- EFT INVOICE LINK HERE -->
-      <a href="mailto:mugonapanjamoses@gmail.com?subject=ActumGuard%20Starter%20Pack%20-%20EFT%20Request&body=Hi%20Moses,%20I%20would%20like%20to%20purchase%20the%20ActumGuard%20Starter%20Pack%20(R899)%20via%20EFT.%20Please%20send%20me%20your%20banking%20details%20and%20an%20invoice." style="text-decoration: none; display: block; text-align: center; font-size: 13px; color: var(--text-muted); text-decoration: underline;">
-        Prefer EFT? Request an invoice
-      </a>
     </div>
-
-    <!-- Pro Software (Waitlist) -->
-    <div class="tier">
-      <h3>Pro Software</h3>
-      <div class="price-amount">R1,799 <span>/ $99/mo</span></div>
-      <p style="font-size:14px; color: var(--text-muted); height: 40px;">The complete operating system.</p>
-      <ul class="features">
-        <li><b>Continuous Monitoring:</b> 12 jurisdictions</li>
-        <li><b>Evidence Vault:</b> Store human reviews</li>
-        <li><b>Unlimited Assessments:</b> Whole business</li>
-        <li><b>Board-Ready Reports:</b> Monthly PDF exports</li>
-      </ul>
-      <a href="mailto:mugonapanjamoses@gmail.com?subject=ActumGuard%20Pro%20Waitlist%20Request&body=Hi%20Moses,%20I%20am%20interested%20in%20joining%20the%20waitlist%20for%20ActumGuard%20Pro.%20My%20company%20is%20_____" style="text-decoration: none;">
-        <button class="btn-tier">Join Waitlist</button>
-      </a>
-    </div>
-  </div>
-</div>
-
-<div class="faq">
-  <h2>Frequently Asked Questions</h2>
-  
-  <div class="faq-item">
-    <h3>Is this legal advice?</h3>
-    <p>No. ActumGuard is a risk-management and workflow software tool. We map your answers to public regulations and provide remediation checklists. You should always confirm your final obligations with qualified legal counsel.</p>
-  </div>
-  
-  <div class="faq-item">
-    <h3>How is the Risk Score calculated?</h3>
-    <p>Your score is based on the severity of the laws triggered by your answers. <b>Low (1-2):</b> Baseline policy needed. <b>Medium (3-5):</b> Gaps in transparency. <b>High (6-9):</b> Immediate compliance risk. <b>Critical (10+):</b> Urgent legal intervention required.</p>
-  </div>
-
-  <div class="faq-item">
-    <h3>Does this cover South Africa and the US?</h3>
-    <p>Yes. Our engine currently covers South Africa (POPIA), the EU (AI Act & GDPR), the US (Colorado ADMT, NYC LL144, Illinois HB 3773), and 8 other major jurisdictions.</p>
-  </div>
-
-  <div class="faq-item">
-    <h3>What happens after I buy the Starter Pack?</h3>
-    <p>Immediately after payment, you will receive an email with a secure link to download your AI Inventory Spreadsheet, Acceptable Use Policy template, Vendor Questionnaire, and the 30-Day Implementation Plan.</p>
   </div>
 </div>
 
 <footer>
-  <p><b>ActumGuard</b> is not a law firm and does not provide legal advice. Assessments are directional risk-management tools, not legal opinions. Confirm obligations with qualified counsel in each jurisdiction.</p>
-  <p style="margin-top: 16px;">&copy; 2026 ActumGuard. Built in South Africa.</p>
+  <p><b>ActumGuard</b> is not a law firm and does not provide legal advice. Assessments are directional risk-management tools, not legal opinions.</p>
 </footer>
 
-<script>
-function payWithPaystack(amount, planName) {
-    const paystack = new PaystackPop();
-    paystack.newTransaction({
-        key: 'pk_test_c77eb2b404c47451da4fcf75364a336d4baaa9e3 it', // <--- REPLACE THIS WITH YOUR ACTUAL PAYSTACK PUBLIC KEY
-        email: prompt("Please enter your email address for your receipt:", ""),
-        amount: amount, 
-        currency: 'ZAR',
-        metadata: {
-            custom_fields: [
-                { display_name: "Product", variable_name: "product", value: planName }
-            ]
-        },
-        onSuccess: (transaction) => {
-            alert(`Payment successful! Reference: ${transaction.reference}. Check your email for your receipt and next steps.`);
-        },
-        onCancel: () => {
-            alert('Payment cancelled.');
-        }
-    });
-}
-</script>
 </body>
 </html>
