@@ -48,20 +48,20 @@
 
 <div class="hero">
   <h1>Your clients are asking for AI policies.<br>Can you prove you have one?</h1>
-  <p>ChatGPT can write a generic document. ActumGuard provides a defensible, jurisdiction-specific audit trail that proves human oversight to regulators, insurers, and enterprise procurement teams.</p>
+  <p>General AI platforms can write a generic document. ActumGuard provides a defensible, jurisdiction-specific audit trail that proves human oversight to regulators, insurers, and enterprise procurement teams.</p>
   <a href="https://actumguard.onrender.com" class="btn-hero">Run the Free AI Risk Scan</a>
 </div>
 
 <div class="why-section">
-  <h2 style="text-align: center; margin-bottom: 40px;">Why ActumGuard vs. ChatGPT?</h2>
+  <h2 style="text-align: center; margin-bottom: 40px;">Why ActumGuard vs. General AI Tools?</h2>
   <div class="why-grid">
     <div class="why-card">
       <h3>1. Audit Trails vs. Text Files</h3>
-      <p>ChatGPT gives you a Word document. ActumGuard gives you an Evidence Vault. We track who approved the policy, when it was deployed, and how employees were trained. If you get audited, a PDF from ChatGPT won't save you. An audit trail will.</p>
+      <p>General AI tools give you a generic Word document. ActumGuard gives you an Evidence Vault. We track who approved the policy, when it was deployed, and how employees were trained. If you get audited, a PDF from a public AI won't save you. An audit trail will.</p>
     </div>
     <div class="why-card">
       <h3>2. Human-Reviewed Laws</h3>
-      <p>AI hallucinates legal advice. Our rules engine is built on hard-coded, human-reviewed regulatory updates across 12 jurisdictions (POPIA, EU AI Act, US ADMT). We don't guess; we map your specific business behavior to enacted laws.</p>
+      <p>AI platforms can hallucinate legal advice. Our rules engine is built on hard-coded, human-reviewed regulatory updates across 12 jurisdictions (POPIA, EU AI Act, US ADMT). We don't guess; we map your specific business behavior to enacted laws.</p>
     </div>
     <div class="why-card">
       <h3>3. Sales Enablement</h3>
@@ -101,9 +101,22 @@
         <li><b>30-Day Implementation Plan</b></li>
         <li><b>Evidence Vault setup guide</b></li>
       </ul>
-      <a href="YOUR_WHOP_CHECKOUT_LINK" target="_blank" style="text-decoration: none;">
+      <a href="https://whop.com/actumguard-live-pages-dev" target="_blank" style="text-decoration: none;">
         <button class="btn-tier" style="width: 100%;">Buy Instantly (Card)</button>
       </a>
+    </div>
+
+    <!-- Instant Policy (DeepSeek) -->
+    <div class="tier">
+      <h3>Instant AI Policy</h3>
+      <div class="price-amount">R299 <span>/ $19</span></div>
+      <ul class="features">
+        <li><b>Custom AI Use Policy</b> for your business</li>
+        <li>Generated instantly by DeepSeek AI</li>
+        <li>Emailed to you immediately</li>
+        <li>Perfect for satisfying client demands</li>
+      </ul>
+      <button class="btn-tier" onclick="payWithPaystack(29900, 'Instant AI Policy')">Generate Policy Now</button>
     </div>
   </div>
 </div>
@@ -112,5 +125,25 @@
   <p><b>ActumGuard</b> is not a law firm and does not provide legal advice. Assessments are directional risk-management tools, not legal opinions.</p>
 </footer>
 
+<script>
+function payWithPaystack(amount, planName) {
+    const paystack = new PaystackPop();
+    paystack.newTransaction({
+        key: 'pk_test_c77eb2b404c47451da4fcf75364a336d4baaa9e3', // <--- REPLACE THIS WITH YOUR PUBLIC KEY
+        email: prompt("Please enter your email address for your receipt:", ""),
+        amount: amount, 
+        currency: 'ZAR',
+        metadata: {
+            custom_fields: [
+                { display_name: "Product", variable_name: "product", value: planName }
+            ]
+        },
+        onSuccess: (transaction) => {
+            alert(`Payment successful! Reference: ${transaction.reference}. We are generating your document and emailing it to you now.`);
+        },
+        onCancel: () => { alert('Payment cancelled.'); }
+    });
+}
+</script>
 </body>
-</html>
+  </html>
