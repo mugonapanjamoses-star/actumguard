@@ -1,5 +1,5 @@
 """
-ActumGuard Backend — V2 (Legal Defensibility & DeepSeek)
+ActumGuard Backend — V3 (Global Jurisdictions & DeepSeek)
 """
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
@@ -12,7 +12,7 @@ from openai import OpenAI
 app = FastAPI(title="ActumGuard")
 DB = Path(os.getenv("ACTUMGUARD_DB", "actumguard.db"))
 
-DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "not-needed")
 deepseek_client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
 
 def init_db():
@@ -26,46 +26,168 @@ def init_db():
         c.commit()
 init_db()
 
-# UPDATED RULES: Explicitly separates Potential Risk from Confirmed Gaps
+# ==========================================
+# GLOBAL RULES REGISTRY
+# ==========================================
 RULES = [
+    # --- AFRICA ---
     {
         "id": "ZA-POPIA-S71", "jurisdiction": "ZA", "law": "POPIA Section 71",
-        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "high",
-        "type": "Potential Risk",
-        "title": "Automated decisions affecting consumers",
-        "detail": "You use AI to influence consumer decisions. POPIA Section 71 requires you to provide a human review process if the decision has significant legal effects on the consumer.",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "high", "type": "Potential Risk",
+        "title": "South Africa: Automated decisions affecting consumers",
+        "detail": "POPIA Section 71 requires you to provide a human review process if an AI decision has significant legal effects on the consumer.",
         "remediation": ["Implement a human review path for rejected applications.", "Document the logic used by the AI."]
     },
     {
+        "id": "NG-NDPA-2023", "jurisdiction": "NG", "law": "Nigeria Data Protection Act",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "high", "type": "Potential Risk",
+        "title": "Nigeria: Right against solely automated decisions",
+        "detail": "Data subjects have the right not to be subject to solely automated decisions with legal effects, unless they consent or the law authorises it.",
+        "remediation": ["Obtain explicit consent where automated decision-making is used.", "Provide a human-review path."]
+    },
+    {
+        "id": "KE-DPA-2019", "jurisdiction": "KE", "law": "Kenya Data Protection Act",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "high", "type": "Potential Risk",
+        "title": "Kenya: Automated decision-making safeguards",
+        "detail": "Section 35 gives data subjects the right not to be subject to a decision based solely on automated processing.",
+        "remediation": ["Disclose automated decision-making.", "Offer human intervention and a right to contest."]
+    },
+    {
+        "id": "EG-PDPL-2020", "jurisdiction": "EG", "law": "Egypt Personal Data Protection Law",
+        "trigger": {"collects_sensitive_data": True}, "severity": "medium", "type": "Potential Risk",
+        "title": "Egypt: Sensitive data processing",
+        "detail": "The PDPL requires 72-hour breach notification and strict controls on sensitive personal data.",
+        "remediation": ["Implement a 72-hour breach-notification process.", "Map all personal data processing to PDPL requirements."]
+    },
+
+    # --- EUROPE ---
+    {
         "id": "EU-AI-ACT-ART-50", "jurisdiction": "EU", "law": "EU AI Act Article 50",
-        "trigger": {"uses_chatbots": True}, "severity": "high",
-        "type": "Potential Risk",
-        "title": "Chatbot transparency disclosure",
-        "detail": "From 2 Aug 2026, any AI system interacting with people must disclose it is AI. This is a strict liability requirement.",
+        "trigger": {"uses_chatbots": True}, "severity": "high", "type": "Potential Risk",
+        "title": "EU: AI chatbot transparency disclosure",
+        "detail": "Any AI system interacting with people must disclose it is AI. Agents must disclose the person on whose behalf they act.",
         "remediation": ["Add an AI-disclosure banner at the start of every chatbot interaction.", "Log the deployment date."]
     },
     {
+        "id": "EU-GDPR-ART-22", "jurisdiction": "EU", "law": "GDPR Article 22",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "high", "type": "Potential Risk",
+        "title": "EU: Automated decision safeguards",
+        "detail": "Data subjects have the right not to be subject to solely automated decisions with legal or similarly significant effects.",
+        "remediation": ["Provide meaningful information about the logic.", "Offer human intervention and the right to contest.", "Conduct a DPIA."]
+    },
+    {
+        "id": "UK-GDPR-ART-22", "jurisdiction": "UK", "law": "UK GDPR Article 22",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "high", "type": "Potential Risk",
+        "title": "UK: Automated decision safeguards",
+        "detail": "UK GDPR gives individuals the right not to be subject to solely automated decisions with legal effects.",
+        "remediation": ["Implement human review processes for automated decisions.", "Document the logic involved."]
+    },
+
+    # --- NORTH AMERICA ---
+    {
         "id": "US-CO-ADMT", "jurisdiction": "US-CO", "law": "Colorado SB 26-189",
-        "trigger": {"uses_ai_in_employment": True}, "severity": "high",
-        "type": "Potential Risk",
-        "title": "ADMT employment disclosure",
-        "detail": "Colorado's new ADMT law requires disclosure before a consequential decision (like hiring) and human review after an adverse outcome.",
+        "trigger": {"uses_ai_in_employment": True}, "severity": "high", "type": "Potential Risk",
+        "title": "US-CO: ADMT employment disclosure",
+        "detail": "Colorado's law requires disclosure before a consequential decision (like hiring) and human review after an adverse outcome.",
         "remediation": ["Document all AI hiring tools.", "Define a human-review path for rejected candidates."]
     },
     {
+        "id": "US-NY-LL144", "jurisdiction": "US-NY-NYC", "law": "NYC Local Law 144",
+        "trigger": {"uses_ai_in_employment": True}, "severity": "high", "type": "Potential Risk",
+        "title": "US-NYC: Bias audit required for hiring AI",
+        "detail": "Employers using automated employment decision tools must conduct an annual independent bias audit.",
+        "remediation": ["Commission an independent bias audit.", "Provide notice to candidates."]
+    },
+    {
+        "id": "US-IL-HB3773", "jurisdiction": "US-IL", "law": "Illinois HB 3773",
+        "trigger": {"uses_ai_in_employment": True}, "severity": "high", "type": "Potential Risk",
+        "title": "US-IL: AI employment discrimination",
+        "detail": "Illinois prohibits discriminatory AI use across hiring, promotion, and termination.",
+        "remediation": ["Assess AI tools for disparate impact.", "Retain records of AI-assisted decisions."]
+    },
+    {
+        "id": "CA-PIPEDA", "jurisdiction": "CA", "law": "PIPEDA",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "medium", "type": "Potential Risk",
+        "title": "Canada: Fair information principles for AI",
+        "detail": "PIPEDA's fair-information principles apply to automated processing. Canada's AIDA is pending.",
+        "remediation": ["Apply fair-information principles.", "Provide meaningful information about the logic."]
+    },
+
+    # --- SOUTH AMERICA ---
+    {
+        "id": "BR-LGPD", "jurisdiction": "BR", "law": "Brazil LGPD",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "high", "type": "Potential Risk",
+        "title": "Brazil: Automated decision review rights",
+        "detail": "LGPD provides rights to review solely automated decisions that affect the data subject's interests.",
+        "remediation": ["Provide a right to review automated decisions.", "Document the criteria used."]
+    },
+    {
+        "id": "CL-LEY-21719", "jurisdiction": "CL", "law": "Chile Ley 21.719",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "high", "type": "Potential Risk",
+        "title": "Chile: Automated decision explanation",
+        "detail": "Chile's new data protection law regulates decisions based on automated processing and requires reconstructive explanations.",
+        "remediation": ["Implement a right to explanation.", "Appoint a data protection officer where required."]
+    },
+
+    # --- ASIA ---
+    {
+        "id": "KR-AI-BASIC-ACT", "jurisdiction": "KR", "law": "South Korea AI Basic Act",
+        "trigger": {"uses_chatbots": True}, "severity": "high", "type": "Potential Risk",
+        "title": "South Korea: Prior notification for generative AI",
+        "detail": "Generative AI operators must notify users in advance that AI is being used.",
+        "remediation": ["Add a prior-notification notice before generative AI interaction."]
+    },
+    {
+        "id": "CN-GENAI-FILING", "jurisdiction": "CN", "law": "China Generative AI Measures",
+        "trigger": {"uses_chatbots": True}, "severity": "critical", "type": "Potential Risk",
+        "title": "China: CAC security assessment and filing",
+        "detail": "Public-facing generative AI services must complete a security assessment and algorithm filing before launch.",
+        "remediation": ["Complete CAC security assessment.", "Apply labels to AI-generated content."]
+    },
+    {
+        "id": "IN-DPDP", "jurisdiction": "IN", "law": "India DPDP Act 2023",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "medium", "type": "Potential Risk",
+        "title": "India: Right to contest automated decisions",
+        "detail": "The DPDP Act gives data principals the right to contest decisions based solely on automated processing.",
+        "remediation": ["Provide a mechanism to contest automated decisions.", "Obtain verifiable parental consent for children's data."]
+    },
+    {
+        "id": "JP-AI-ACT", "jurisdiction": "JP", "law": "Japan AI Promotion Act",
+        "trigger": {"uses_chatbots": True}, "severity": "low", "type": "Potential Risk",
+        "title": "Japan: AI utilisation cooperation",
+        "detail": "Japan's soft-law act requires AI-utilising businesses to cooperate with government measures.",
+        "remediation": ["Monitor the AI Basic Plan.", "Participate in voluntary compliance frameworks."]
+    },
+
+    # --- OCEANIA ---
+    {
+        "id": "AU-OAIC-ADM", "jurisdiction": "AU", "law": "Australian Privacy Principles 1.7-1.9",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "high", "type": "Potential Risk",
+        "title": "Australia: Disclose automated decision-making",
+        "detail": "From Dec 2026, APP entities must disclose AI and automated decision-making in privacy policies.",
+        "remediation": ["Update privacy policies to disclose ADM use.", "Provide a path for human review."]
+    },
+    {
+        "id": "NZ-PRIVACY-ACT", "jurisdiction": "NZ", "law": "New Zealand Privacy Act",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "medium", "type": "Potential Risk",
+        "title": "New Zealand: Responsible AI Guidance",
+        "detail": "NZ relies on the Privacy Act 2020 and voluntary responsible AI guidance. Algorithm Charter applies to government agencies.",
+        "remediation": ["Apply responsible-AI guidance.", "Comply with the Privacy Act 2020 for personal data."]
+    },
+
+    # --- GLOBAL BASELINES (Confirmed Gaps) ---
+    {
         "id": "CONFIRMED-GAP-VENDORS", "jurisdiction": "GLOBAL", "law": "Vendor Governance",
-        "trigger": {"has_vendor_contracts": False}, "severity": "high",
-        "type": "Confirmed Gap",
+        "trigger": {"has_vendor_contracts": False}, "severity": "high", "type": "Confirmed Gap",
         "title": "Missing AI Vendor Contracts (DPAs)",
-        "detail": "You indicated you DO NOT have written Data Processing Agreements (DPAs) with your AI vendors. This is a confirmed compliance gap and a major liability if the vendor has a data breach.",
-        "remediation": ["Download our Vendor Questionnaire.", "Send it to all AI suppliers immediately.", "Do not use vendors who refuse to sign a DPA."]
+        "detail": "You indicated you DO NOT have written Data Processing Agreements (DPAs) with your AI vendors. This is a major liability.",
+        "remediation": ["Download our Vendor Questionnaire.", "Do not use vendors who refuse to sign a DPA."]
     },
     {
         "id": "CONFIRMED-GAP-HUMAN-REVIEW", "jurisdiction": "GLOBAL", "law": "Human Oversight",
-        "trigger": {"has_human_review_process": False}, "severity": "high",
-        "type": "Confirmed Gap",
+        "trigger": {"has_human_review_process": False}, "severity": "high", "type": "Confirmed Gap",
         "title": "Missing Human Review Process",
-        "detail": "You indicated you DO NOT have a documented human-review process for adverse AI outcomes. This is a confirmed gap. If an AI makes a mistake, you have no proof a human checked it.",
+        "detail": "You indicated you DO NOT have a documented human-review process. If an AI makes a mistake, you have no proof a human checked it.",
         "remediation": ["Use our Acceptable Use Policy template.", "Mandate that no AI decision is final until a human clicks 'Approve'."]
     }
 ]
@@ -94,7 +216,6 @@ def evaluate(scan: ScanRequest):
         if match:
             findings.append(rule)
             
-    # Scoring: Confirmed Gaps weigh heavier than Potential Risks
     score = 0
     for f in findings:
         if f["type"] == "Confirmed Gap": score += 4
@@ -116,7 +237,7 @@ def scan(req: ScanRequest):
 async def paystack_webhook(request: Request):
     signature = request.headers.get('x-paystack-signature', '')
     body = await request.body()
-    secret_key = os.getenv("pk_test_c77eb2b404c47451da4fcf75364a336d4baaa9e3", "sk_test_YOUR_SECRET_KEY")
+    secret_key = os.getenv("PAYSTACK_SECRET_KEY", "sk_test_YOUR_SECRET_KEY")
     
     computed_hash = hmac.new(secret_key.encode('utf-8'), msg=body, digestmod=hashlib.sha512).hexdigest()
     if not hmac.compare_digest(computed_hash, signature):
@@ -142,7 +263,6 @@ async def paystack_webhook(request: Request):
                     ]
                 )
                 print(f"✅ Policy generated for {customer_email}")
-                print(response.choices[0].message.content)
             except Exception as e:
                 print(f"❌ DeepSeek Error: {str(e)}")
 
@@ -178,6 +298,9 @@ button{width:100%;padding:14px;border:none;border-radius:8px;background:#4f8cff;
 .badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:8px}
 .high{background:#3a1518;color:#ff5c5c}.medium{background:#3a2e15;color:#f0b34a}.low{background:#153a26;color:#38c98a}.critical{background:#4a0f0f;color:#ff8a8a}
 .small{font-size:12px;color:#6a7488;margin-top:20px}
+.continent-group { max-height: 250px; overflow-y: auto; border: 1px solid #2a3450; padding: 12px; border-radius: 8px; background: #151b2e; margin-bottom: 16px; }
+.continent-title { display: block; margin-top: 12px; margin-bottom: 6px; color: #4f8cff; font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; }
+.continent-title:first-child { margin-top: 0; }
 </style>
 </head>
 <body>
@@ -201,11 +324,38 @@ button{width:100%;padding:14px;border:none;border-radius:8px;background:#4f8cff;
 <option>Other</option>
 </select>
 
-<label>Where do you operate? (Select at least one)</label>
-<div class="chk"><input type="checkbox" class="jur" value="ZA"/> South Africa</div>
-<div class="chk"><input type="checkbox" class="jur" value="EU"/> European Union</div>
-<div class="chk"><input type="checkbox" class="jur" value="US-CO"/> Colorado (US)</div>
-<div class="chk"><input type="checkbox" class="jur" value="US-NY-NYC"/> New York City (US)</div>
+<label>Where do you operate? (Select all that apply)</label>
+<div class="continent-group">
+    <span class="continent-title">Africa</span>
+    <div class="chk"><input type="checkbox" class="jur" value="ZA"/> South Africa</div>
+    <div class="chk"><input type="checkbox" class="jur" value="NG"/> Nigeria</div>
+    <div class="chk"><input type="checkbox" class="jur" value="KE"/> Kenya</div>
+    <div class="chk"><input type="checkbox" class="jur" value="EG"/> Egypt</div>
+    
+    <span class="continent-title">Europe</span>
+    <div class="chk"><input type="checkbox" class="jur" value="EU"/> European Union</div>
+    <div class="chk"><input type="checkbox" class="jur" value="UK"/> United Kingdom</div>
+    
+    <span class="continent-title">North America</span>
+    <div class="chk"><input type="checkbox" class="jur" value="US-CO"/> USA - Colorado</div>
+    <div class="chk"><input type="checkbox" class="jur" value="US-NY-NYC"/> USA - New York City</div>
+    <div class="chk"><input type="checkbox" class="jur" value="US-IL"/> USA - Illinois</div>
+    <div class="chk"><input type="checkbox" class="jur" value="CA"/> Canada</div>
+
+    <span class="continent-title">South America</span>
+    <div class="chk"><input type="checkbox" class="jur" value="BR"/> Brazil</div>
+    <div class="chk"><input type="checkbox" class="jur" value="CL"/> Chile</div>
+
+    <span class="continent-title">Asia</span>
+    <div class="chk"><input type="checkbox" class="jur" value="KR"/> South Korea</div>
+    <div class="chk"><input type="checkbox" class="jur" value="CN"/> China</div>
+    <div class="chk"><input type="checkbox" class="jur" value="IN"/> India</div>
+    <div class="chk"><input type="checkbox" class="jur" value="JP"/> Japan</div>
+
+    <span class="continent-title">Oceania</span>
+    <div class="chk"><input type="checkbox" class="jur" value="AU"/> Australia</div>
+    <div class="chk"><input type="checkbox" class="jur" value="NZ"/> New Zealand</div>
+</div>
 
 <label>AI Usage (Check all that apply)</label>
 <div class="chk"><input type="checkbox" id="employment"/> We use AI in hiring, promotion, or termination</div>
@@ -225,6 +375,8 @@ async function run(){
   const email=document.getElementById('email').value;
   if(!email){alert('Enter your email');return;}
   const jurisdictions=[...document.querySelectorAll('.jur:checked')].map(x=>x.value);
+  if(jurisdictions.length === 0) { alert("Please select at least one jurisdiction."); return; }
+  
   const body={
     email, industry:document.getElementById('industry').value, jurisdictions,
     uses_ai_in_employment:document.getElementById('employment').checked,
