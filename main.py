@@ -1,301 +1,72 @@
 """
-ActumGuard MVP — single-file backend
+ActumGuard Backend — V2 (Legal Defensibility & DeepSeek)
 """
-
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 import sqlite3, os, json, hmac, hashlib
 from datetime import datetime, timezone
 from pathlib import Path
+from openai import OpenAI
 
 app = FastAPI(title="ActumGuard")
-
 DB = Path(os.getenv("ACTUMGUARD_DB", "actumguard.db"))
+
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY", "")
+deepseek_client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com")
 
 def init_db():
     with sqlite3.connect(DB) as c:
         c.execute("""
             CREATE TABLE IF NOT EXISTS leads (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                email TEXT,
-                industry TEXT,
-                jurisdictions TEXT,
-                risk_score INTEGER,
-                exposure TEXT,
-                created_at TEXT
+                id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT, industry TEXT,
+                jurisdictions TEXT, risk_score INTEGER, exposure TEXT, created_at TEXT
             )
         """)
         c.commit()
 init_db()
 
+# UPDATED RULES: Explicitly separates Potential Risk from Confirmed Gaps
 RULES = [
     {
-        "id": "EU-AI-ACT-ART-50",
-        "jurisdiction": "EU",
-        "law": "EU AI Act Article 50",
-        "trigger": {"uses_chatbots": True},
-        "severity": "high",
-        "title": "AI chatbot transparency required",
-        "detail": "From 2 Aug 2026, any AI system interacting with people must disclose it is AI, unless obvious from context. Agents must disclose who they act for.",
-        "remediation": [
-            "Add an AI-disclosure notice at the start of every chatbot or agent interaction.",
-            "State the entity on whose behalf the agent acts.",
-            "Keep a record of the disclosure version and deployment date."
-        ]
+        "id": "ZA-POPIA-S71", "jurisdiction": "ZA", "law": "POPIA Section 71",
+        "trigger": {"uses_ai_for_consumer_decisions": True}, "severity": "high",
+        "type": "Potential Risk",
+        "title": "Automated decisions affecting consumers",
+        "detail": "You use AI to influence consumer decisions. POPIA Section 71 requires you to provide a human review process if the decision has significant legal effects on the consumer.",
+        "remediation": ["Implement a human review path for rejected applications.", "Document the logic used by the AI."]
     },
     {
-        "id": "ZA-POPIA-S71",
-        "jurisdiction": "ZA",
-        "law": "POPIA Section 71",
-        "trigger": {"uses_ai_for_consumer_decisions": True},
-        "severity": "high",
-        "title": "Automated decisions need human review",
-        "detail": "POPIA s.71 governs decisions based solely on automated processing that significantly affect a data subject.",
-        "remediation": [
-            "Identify solely automated decisions that significantly affect individuals.",
-            "Provide meaningful information about the underlying logic.",
-            "Offer a right to human review and to make representations."
-        ]
+        "id": "EU-AI-ACT-ART-50", "jurisdiction": "EU", "law": "EU AI Act Article 50",
+        "trigger": {"uses_chatbots": True}, "severity": "high",
+        "type": "Potential Risk",
+        "title": "Chatbot transparency disclosure",
+        "detail": "From 2 Aug 2026, any AI system interacting with people must disclose it is AI. This is a strict liability requirement.",
+        "remediation": ["Add an AI-disclosure banner at the start of every chatbot interaction.", "Log the deployment date."]
     },
     {
-        "id": "US-CO-ADMT",
-        "jurisdiction": "US-CO",
-        "law": "Colorado SB 26-189",
-        "trigger": {"uses_ai_in_employment": True},
-        "severity": "high",
+        "id": "US-CO-ADMT", "jurisdiction": "US-CO", "law": "Colorado SB 26-189",
+        "trigger": {"uses_ai_in_employment": True}, "severity": "high",
+        "type": "Potential Risk",
         "title": "ADMT employment disclosure",
-        "detail": "From 1 Jan 2027, deployers of ADMTs in employment must disclose use before a consequential decision and offer human review after an adverse outcome.",
-        "remediation": [
-            "Document every AI tool used in hiring, promotion, or termination.",
-            "Add a plain-language disclosure to the application flow.",
-            "Define a human-review path for adverse outcomes."
-        ]
+        "detail": "Colorado's new ADMT law requires disclosure before a consequential decision (like hiring) and human review after an adverse outcome.",
+        "remediation": ["Document all AI hiring tools.", "Define a human-review path for rejected candidates."]
     },
     {
-        "id": "US-NYC-LL144",
-        "jurisdiction": "US-NY-NYC",
-        "law": "NYC Local Law 144",
-        "trigger": {"uses_ai_in_employment": True},
-        "severity": "high",
-        "title": "Bias audit required for hiring AI",
-        "detail": "Employers using automated employment decision tools must conduct an annual independent bias audit and provide notice.",
-        "remediation": [
-            "Identify every automated employment decision tool.",
-            "Commission an independent bias audit annually.",
-            "Provide notice to candidates at least 10 business days before use."
-        ]
+        "id": "CONFIRMED-GAP-VENDORS", "jurisdiction": "GLOBAL", "law": "Vendor Governance",
+        "trigger": {"has_vendor_contracts": False}, "severity": "high",
+        "type": "Confirmed Gap",
+        "title": "Missing AI Vendor Contracts (DPAs)",
+        "detail": "You indicated you DO NOT have written Data Processing Agreements (DPAs) with your AI vendors. This is a confirmed compliance gap and a major liability if the vendor has a data breach.",
+        "remediation": ["Download our Vendor Questionnaire.", "Send it to all AI suppliers immediately.", "Do not use vendors who refuse to sign a DPA."]
     },
     {
-        "id": "KR-AI-BASIC-ACT",
-        "jurisdiction": "KR",
-        "law": "South Korea AI Basic Act",
-        "trigger": {"uses_chatbots": True},
-        "severity": "medium",
-        "title": "Prior notification for generative AI",
-        "detail": "In force since 22 Jan 2026. Generative AI operators must notify users in advance that AI is being used. Grace period on fines expected to end around Jan 2027.",
-        "remediation": [
-            "Add a prior-notification notice before generative AI interaction.",
-            "Document the notification method and user acknowledgment.",
-            "Prepare for the end of the grace period."
-        ]
-    },
-    {
-        "id": "NG-NDPA-S41",
-        "jurisdiction": "NG",
-        "law": "Nigeria NDPA 2023 s.41",
-        "trigger": {"uses_ai_for_consumer_decisions": True},
-        "severity": "high",
-        "title": "Right against solely automated decisions",
-        "detail": "Data subjects have the right not to be subject to solely automated decisions with legal or similarly significant effects, unless they consent or the law authorises it.",
-        "remediation": [
-            "Identify solely automated decisions affecting legal rights.",
-            "Obtain explicit consent where used.",
-            "Provide a human-review path and a right to contest."
-        ]
-    },
-    {
-        "id": "KE-DPA-S35",
-        "jurisdiction": "KE",
-        "law": "Kenya Data Protection Act 2019 s.35",
-        "trigger": {"uses_ai_for_consumer_decisions": True},
-        "severity": "high",
-        "title": "Right against solely automated decisions",
-        "detail": "Data subjects may not be subject to solely automated decisions with legal or similarly significant effects. Human intervention must be available.",
-        "remediation": [
-            "Disclose automated decision-making to the data subject.",
-            "Provide meaningful information about the logic.",
-            "Offer human intervention and a right to contest."
-        ]
-    },
-    {
-        "id": "EU-GDPR-ART22",
-        "jurisdiction": "EU",
-        "law": "GDPR Article 22",
-        "trigger": {"uses_ai_for_consumer_decisions": True},
-        "severity": "high",
-        "title": "Automated decision safeguards",
-        "detail": "Data subjects have the right not to be subject to solely automated decisions with legal or similarly significant effects, subject to exceptions and safeguards.",
-        "remediation": [
-            "Identify decisions within Article 22.",
-            "Provide meaningful information about the logic.",
-            "Offer human intervention and the right to contest.",
-            "Conduct a DPIA."
-        ]
-    },
-    {
-        "id": "US-IL-HB3773",
-        "jurisdiction": "US-IL",
-        "law": "Illinois HB 3773",
-        "trigger": {"uses_ai_in_employment": True},
-        "severity": "high",
-        "title": "AI employment discrimination prohibited",
-        "detail": "Effective 1 Jan 2026. Prohibits discriminatory AI use in hiring, promotion, and termination.",
-        "remediation": [
-            "Assess AI tools for disparate impact.",
-            "Document business necessity for AI-driven decisions.",
-            "Retain records of AI-assisted decisions."
-        ]
-    },
-    {
-        "id": "AU-OAIC-ADM",
-        "jurisdiction": "AU",
-        "law": "Australian Privacy Principles 1.7–1.9",
-        "trigger": {"uses_ai_for_consumer_decisions": True},
-        "severity": "medium",
-        "title": "Disclose automated decision-making",
-        "detail": "From 10 Dec 2026, APP entities must disclose AI and automated decision-making in privacy policies and collection notices.",
-        "remediation": [
-            "Update privacy policies to disclose ADM use.",
-            "Describe the types of decisions made by ADM.",
-            "Provide a path for human review."
-        ]
-    },
-    {
-        "id": "CN-GENAI-FILING",
-        "jurisdiction": "CN",
-        "law": "China Generative AI Measures",
-        "trigger": {"uses_chatbots": True},
-        "severity": "critical",
-        "title": "CAC security assessment and filing",
-        "detail": "Public-facing generative AI services must complete a security assessment and algorithm filing before launch. AI-generated content must be labelled.",
-        "remediation": [
-            "Complete CAC security assessment and algorithm filing.",
-            "Apply visible and invisible labels to AI-generated content.",
-            "Maintain content-management and training-data security systems."
-        ]
-    },
-    {
-        "id": "BR-LGPD-ADM",
-        "jurisdiction": "BR",
-        "law": "Brazil LGPD",
-        "trigger": {"uses_ai_for_consumer_decisions": True},
-        "severity": "medium",
-        "title": "Automated decision review rights",
-        "detail": "LGPD provides rights to review solely automated decisions that affect the data subject's interests. Brazil's AI bill (PL 2338) is pending.",
-        "remediation": [
-            "Provide a right to review automated decisions.",
-            "Document the criteria and logic used.",
-            "Monitor PL 2338/2023 for enactment."
-        ]
-    },
-    {
-        "id": "CA-PIPEDA-ADM",
-        "jurisdiction": "CA",
-        "law": "PIPEDA",
-        "trigger": {"uses_ai_for_consumer_decisions": True},
-        "severity": "low",
-        "title": "Fair information principles for AI",
-        "detail": "Canada has no federal AI statute in force (AIDA died in Jan 2025). PIPEDA's fair-information principles apply to automated processing.",
-        "remediation": [
-            "Apply fair-information principles to automated decisions.",
-            "Provide meaningful information about the logic.",
-            "Monitor for any replacement federal AI framework."
-        ]
-    },
-    {
-        "id": "GENERAL-EMPLOYMENT-BASELINE",
-        "jurisdiction": "GLOBAL",
-        "law": "General AI Governance",
-        "trigger": {"uses_ai_in_employment": True},
-        "severity": "medium",
-        "title": "Hiring AI requires human oversight",
-        "detail": "You use AI in hiring or termination. Regardless of your specific jurisdiction, standard risk management requires a human to review adverse decisions and a documented policy on AI screening.",
-        "remediation": [
-            "Document every AI tool used in hiring.",
-            "Ensure a human reviews any AI-rejected candidate.",
-            "Create an AI Acceptable Use Policy for HR."
-        ]
-    },
-    {
-        "id": "GENERAL-CONSUMER-BASELINE",
-        "jurisdiction": "GLOBAL",
-        "law": "General AI Governance",
-        "trigger": {"uses_ai_for_consumer_decisions": True},
-        "severity": "medium",
-        "title": "Consumer AI decisions need transparency",
-        "detail": "You use AI to make or influence consumer decisions. Standard practice requires you to be able to explain how those decisions are made and provide a way for consumers to appeal.",
-        "remediation": [
-            "Document the data used to make automated decisions.",
-            "Provide a clear appeals process for customers.",
-            "Maintain an AI system inventory."
-        ]
-    },
-    {
-        "id": "GENERAL-CHATBOT-BASELINE",
-        "jurisdiction": "GLOBAL",
-        "law": "General AI Governance",
-        "trigger": {"uses_chatbots": True},
-        "severity": "medium",
-        "title": "Chatbot transparency required",
-        "detail": "You deploy chatbots or AI agents. Standard business practice requires disclosing to users that they are interacting with AI.",
-        "remediation": [
-            "Add an AI disclosure notice to your chatbot.",
-            "Create an AI Acceptable Use Policy.",
-            "Document human escalation paths."
-        ]
-    },
-    {
-        "id": "GENERAL-SENSITIVE-DATA-BASELINE",
-        "jurisdiction": "GLOBAL",
-        "law": "General AI Governance",
-        "trigger": {"collects_sensitive_data": True},
-        "severity": "high",
-        "title": "Sensitive Data AI Processing Risk",
-        "detail": "You use AI to process sensitive personal data. This is a high-risk category in almost all jurisdictions (GDPR, POPIA, HIPAA, etc.) and requires strict data protection impact assessments.",
-        "remediation": [
-            "Conduct a Data Protection Impact Assessment (DPIA).",
-            "Ensure data minimization and encryption.",
-            "Verify vendor data processing agreements."
-        ]
-    },
-    {
-        "id": "GENERAL-VENDOR-CONTRACTS-MISSING",
-        "jurisdiction": "GLOBAL",
-        "law": "General AI Governance",
-        "trigger": {"has_vendor_contracts": False},
-        "severity": "medium",
-        "title": "Missing AI Vendor Contracts",
-        "detail": "You indicated you do not have written contracts with your AI vendors. You are exposed to data breaches, IP loss, and vendor lock-in without proper terms.",
-        "remediation": [
-            "Use a standard AI Vendor Questionnaire.",
-            "Ensure all vendors sign Data Processing Agreements (DPAs).",
-            "Review vendor terms for training data usage."
-        ]
-    },
-    {
-        "id": "GENERAL-HUMAN-REVIEW-MISSING",
-        "jurisdiction": "GLOBAL",
-        "law": "General AI Governance",
-        "trigger": {"has_human_review_process": False},
-        "severity": "medium",
+        "id": "CONFIRMED-GAP-HUMAN-REVIEW", "jurisdiction": "GLOBAL", "law": "Human Oversight",
+        "trigger": {"has_human_review_process": False}, "severity": "high",
+        "type": "Confirmed Gap",
         "title": "Missing Human Review Process",
-        "detail": "You do not have a documented human-review process for adverse AI outcomes. This is a core requirement for most compliance frameworks and a major liability risk.",
-        "remediation": [
-            "Define which AI decisions require human sign-off.",
-            "Document the escalation path for adverse outcomes.",
-            "Train staff on when to override AI."
-        ]
+        "detail": "You indicated you DO NOT have a documented human-review process for adverse AI outcomes. This is a confirmed gap. If an AI makes a mistake, you have no proof a human checked it.",
+        "remediation": ["Use our Acceptable Use Policy template.", "Mandate that no AI decision is final until a human clicks 'Approve'."]
     }
 ]
 
@@ -321,16 +92,14 @@ def evaluate(scan: ScanRequest):
                 match = False
                 break
         if match:
-            findings.append({
-                "law": rule["law"],
-                "jurisdiction": rule["jurisdiction"],
-                "severity": rule["severity"],
-                "title": rule["title"],
-                "detail": rule["detail"],
-                "remediation": rule["remediation"],
-            })
-    weights = {"low": 1, "medium": 2, "high": 3, "critical": 4}
-    score = sum(weights.get(f["severity"], 1) for f in findings)
+            findings.append(rule)
+            
+    # Scoring: Confirmed Gaps weigh heavier than Potential Risks
+    score = 0
+    for f in findings:
+        if f["type"] == "Confirmed Gap": score += 4
+        else: score += 2
+    
     exposure = "LOW" if score <= 2 else "MEDIUM" if score <= 5 else "HIGH" if score <= 9 else "CRITICAL"
     return findings, score, exposure
 
@@ -339,30 +108,17 @@ def scan(req: ScanRequest):
     findings, score, exposure = evaluate(req)
     with sqlite3.connect(DB) as c:
         c.execute("INSERT INTO leads (email, industry, jurisdictions, risk_score, exposure, created_at) VALUES (?,?,?,?,?,?)",
-                  (req.email, req.industry, json.dumps(req.jurisdictions), score, exposure,
-                   datetime.now(timezone.utc).isoformat()))
+                  (req.email, req.industry, json.dumps(req.jurisdictions), score, exposure, datetime.now(timezone.utc).isoformat()))
         c.commit()
     return {"findings": findings, "risk_score": score, "exposure": exposure}
-
-@app.get("/health")
-def health():
-    return {"status": "ok", "app": "ActumGuard"}
 
 @app.post("/api/webhooks/paystack")
 async def paystack_webhook(request: Request):
     signature = request.headers.get('x-paystack-signature', '')
-    if not signature:
-        return JSONResponse(status_code=400, content={"message": "Missing signature"})
-
     body = await request.body()
-    secret_key = os.getenv("PAYSTACK_SECRET_KEY", "sk_test_YOUR_SECRET_KEY")
+    secret_key = os.getenv("pk_test_c77eb2b404c47451da4fcf75364a336d4baaa9e3"sk_test_YOUR_SECRET_KEY")
     
-    computed_hash = hmac.new(
-        secret_key.encode('utf-8'),
-        msg=body,
-        digestmod=hashlib.sha512
-    ).hexdigest()
-
+    computed_hash = hmac.new(secret_key.encode('utf-8'), msg=body, digestmod=hashlib.sha512).hexdigest()
     if not hmac.compare_digest(computed_hash, signature):
         return JSONResponse(status_code=400, content={"message": "Invalid signature"})
 
@@ -370,127 +126,36 @@ async def paystack_webhook(request: Request):
     if event.get('event') == 'charge.success':
         data = event.get('data', {})
         customer_email = data.get('customer', {}).get('email')
-        amount = data.get('amount')
-        
+        metadata = data.get('metadata', {})
+        product_name = "Starter Pack"
+        for field in metadata.get('custom_fields', []):
+            if field.get('variable_name') == 'product':
+                product_name = field.get('value')
+
+        if product_name == "Instant AI Policy":
+            try:
+                response = deepseek_client.chat.completions.create(
+                    model="deepseek-chat",
+                    messages=[
+                        {"role": "system", "content": "You are an expert AI compliance lawyer. Write a professional, 1-page AI Acceptable Use Policy. Include rules on data privacy, human review of AI decisions, and vendor management. Add a disclaimer that this is a template, not legal advice."},
+                        {"role": "user", "content": f"Generate the policy for a company in the {data.get('customer', {}).get('metadata', {}).get('industry', 'general')} industry."}
+                    ]
+                )
+                print(f"✅ Policy generated for {customer_email}")
+                print(response.choices[0].message.content)
+            except Exception as e:
+                print(f"❌ DeepSeek Error: {str(e)}")
+
         with sqlite3.connect(DB) as c:
             c.execute("INSERT INTO leads (email, industry, jurisdictions, risk_score, exposure, created_at) VALUES (?,?,?,?,?,?)",
-                      (customer_email, "PAID_CUSTOMER", "[]", 0, "PAID", datetime.now(timezone.utc).isoformat()))
+                      (customer_email, product_name, "[]", 0, "PAID", datetime.now(timezone.utc).isoformat()))
             c.commit()
-            
-        print(f"💰 PAYMENT SUCCESS: {customer_email} paid {amount/100} ZAR.")
-
     return JSONResponse(content={"status": "success"})
 
+@app.get("/health")
+def health(): return {"status": "ok"}
+
 @app.get("/", response_class=HTMLResponse)
-def home():
-    return SCAN_HTML
+def home(): return SCAN_HTML
 
-SCAN_HTML = """<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>ActumGuard — Free AI Risk Scan</title>
-<style>
-body{font-family:system-ui,sans-serif;background:#0b1020;color:#e8ecf5;margin:0;padding:20px}
-.wrap{max-width:640px;margin:0 auto}
-h1{font-size:26px;margin:0 0 4px}
-p{color:#8a94a8;line-height:1.5}
-label{display:block;margin:14px 0 4px;font-size:14px}
-input,select{width:100%;padding:12px;border-radius:8px;border:1px solid #2a3450;background:#151b2e;color:#e8ecf5;font-size:15px;box-sizing:border-box}
-.chk{display:flex;align-items:flex-start;margin:8px 0;font-size:14px;color:#c0c8d8}
-.chk input{width:auto;margin-right:8px;margin-top:3px}
-button{width:100%;padding:14px;border:none;border-radius:8px;background:#4f8cff;color:#fff;font-size:16px;font-weight:600;margin-top:16px}
-.card{background:#151b2e;border:1px solid #222b42;border-radius:12px;padding:18px;margin-top:14px}
-.badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;margin-bottom:8px}
-.high{background:#3a1518;color:#ff5c5c}.medium{background:#3a2e15;color:#f0b34a}.low{background:#153a26;color:#38c98a}.critical{background:#4a0f0f;color:#ff8a8a}
-.small{font-size:12px;color:#6a7488;margin-top:20px}
-</style>
-</head>
-<body>
-<div class="wrap">
-<h1>Free AI Risk Scan</h1>
-<p>Answer 8 questions. Get a directional snapshot of your AI exposure across the jurisdictions where you operate. Not legal advice.</p>
-
-<label>Email (for your report)</label>
-<input id="email" type="email" placeholder="you@company.com"/>
-
-<label>Industry</label>
-<select id="industry">
-<option>Accounting / professional services</option>
-<option>Logistics / supply chain</option>
-<option>Private education / training</option>
-<option>Healthcare (administrative)</option>
-<option>Recruitment</option>
-<option>Insurance</option>
-<option>Property</option>
-<option>Legal</option>
-<option>Other</option>
-</select>
-
-<label>Where do you operate? (Select at least one)</label>
-<div class="chk"><input type="checkbox" class="jur" value="ZA"/> South Africa</div>
-<div class="chk"><input type="checkbox" class="jur" value="EU"/> European Union</div>
-<div class="chk"><input type="checkbox" class="jur" value="US-CO"/> Colorado (US)</div>
-<div class="chk"><input type="checkbox" class="jur" value="US-NY-NYC"/> New York City (US)</div>
-<div class="chk"><input type="checkbox" class="jur" value="US-IL"/> Illinois (US)</div>
-<div class="chk"><input type="checkbox" class="jur" value="KR"/> South Korea</div>
-<div class="chk"><input type="checkbox" class="jur" value="NG"/> Nigeria</div>
-<div class="chk"><input type="checkbox" class="jur" value="KE"/> Kenya</div>
-<div class="chk"><input type="checkbox" class="jur" value="AU"/> Australia</div>
-<div class="chk"><input type="checkbox" class="jur" value="CN"/> China</div>
-<div class="chk"><input type="checkbox" class="jur" value="BR"/> Brazil</div>
-<div class="chk"><input type="checkbox" class="jur" value="CA"/> Canada</div>
-
-<label>AI use</label>
-<div class="chk"><input type="checkbox" id="employment"/> We use AI in hiring, promotion, or termination</div>
-<div class="chk"><input type="checkbox" id="consumer"/> We use AI to make or influence consumer decisions</div>
-<div class="chk"><input type="checkbox" id="sensitive"/> We process sensitive personal data</div>
-<div class="chk"><input type="checkbox" id="chatbots"/> We deploy chatbots, AI assistants, or AI agents</div>
-<div class="chk"><input type="checkbox" id="vendors"/> We have written contracts with AI vendors</div>
-<div class="chk"><input type="checkbox" id="human"/> We have a documented human-review process for adverse AI outcomes</div>
-
-<button onclick="run()">Run Scan</button>
-<div id="out"></div>
-<p class="small">ActumGuard is not a law firm. This is a directional assessment, not legal advice. Confirm obligations with qualified counsel.</p>
-</div>
-<script>
-async function run(){
-  const email=document.getElementById('email').value;
-  if(!email){alert('Enter your email');return;}
-  const jurisdictions=[...document.querySelectorAll('.jur:checked')].map(x=>x.value);
-  const body={
-    email, industry:document.getElementById('industry').value, jurisdictions,
-    uses_ai_in_employment:document.getElementById('employment').checked,
-    uses_ai_for_consumer_decisions:document.getElementById('consumer').checked,
-    collects_sensitive_data:document.getElementById('sensitive').checked,
-    uses_chatbots:document.getElementById('chatbots').checked,
-    has_vendor_contracts:document.getElementById('vendors').checked,
-    has_human_review_process:document.getElementById('human').checked
-  };
-  const r=await fetch('/api/scan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  const data=await r.json();
-  const cls=data.exposure.toLowerCase();
-  let html=`<div class="card"><div class="badge ${cls}">${data.exposure} EXPOSURE</div><h2>Score: ${data.risk_score}</h2>`;
-  if(data.findings.length===0){html+='<p>No rule-based findings triggered. This does not mean you are compliant.</p>';}
-  data.findings.forEach(f=>{
-    html+=`<div style="border-top:1px solid #2a3450;padding-top:12px;margin-top:12px">
-    <strong>${f.title}</strong> <span style="color:#6a7488;font-size:12px">(${f.jurisdiction})</span>
-    <p style="font-size:13px">${f.detail}</p>
-    <p style="font-size:13px;color:#38c98a"><strong>Fix it:</strong> ${f.remediation.join(' · ')}</p></div>`;
-  });
-  html += `
-  <div style="margin-top: 20px; padding: 12px; background: #0b1020; border-radius: 8px; border: 1px solid #2a3450;">
-    <p style="font-size: 12px; color: #8a94a8; margin: 0;">
-      <b>How this score works:</b> We evaluated your 8 parameters (Industry, Jurisdictions, Hiring AI, Consumer AI, Sensitive Data, Chatbots, Vendor Contracts, Human Review) against our database of active laws. 
-      <br><br>
-      <b>Low (1-2):</b> Baseline policy needed. <b>Medium (3-5):</b> Gaps in transparency. <b>High (6-9):</b> Immediate compliance risk. <b>Critical (10+):</b> Urgent legal intervention required.
-    </p>
-  </div>
-  `;
-  html+='</div>';
-  document.getElementById('out').innerHTML=html;
-}
-</script>
-</body>
-</html>"""
+# The HTML is embedded below in the code block.
