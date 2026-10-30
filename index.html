@@ -1,149 +1,159 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>ActumGuard — Defensible AI Governance for SMBs</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ActumGuard: AI governance paperwork for small businesses</title>
+<meta name="description" content="Find out which AI rules may apply to your business, then build the policy, inventory and review records that clients and regulators ask for.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
-<script src="https://js.paystack.co/v2/inline.js"></script>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root { --bg: #070b14; --surface: #111827; --text-main: #f3f4f6; --text-muted: #9ca3af; --primary: #3b82f6; --primary-hover: #2563eb; --border: #1f2937; }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: 'Inter', sans-serif; background-color: var(--bg); color: var(--text-main); line-height: 1.6; }
-  .banner { background: linear-gradient(90deg, #1e3a8a, #3b82f6); text-align: center; padding: 8px; font-size: 13px; font-weight: 600; }
-  nav { display: flex; justify-content: space-between; align-items: center; padding: 20px; max-width: 1100px; margin: 0 auto; }
-  .logo { font-weight: 800; font-size: 22px; letter-spacing: -1px; }
-  .logo span { color: var(--primary); }
-  .hero { max-width: 800px; margin: 50px auto; padding: 0 24px; text-align: center; }
-  .hero h1 { font-size: clamp(36px, 6vw, 56px); font-weight: 800; line-height: 1.1; margin-bottom: 24px; }
-  .hero h1 span { color: var(--primary); }
-  .hero p { font-size: 18px; color: var(--text-muted); max-width: 600px; margin: 0 auto 32px; }
-  .btn-hero { display: inline-block; background: var(--primary); color: white; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; text-decoration: none; transition: 0.2s; border: none; cursor: pointer; }
-  .btn-hero:hover { background: var(--primary-hover); transform: translateY(-2px); }
-  .why-section { max-width: 1000px; margin: 80px auto; padding: 0 24px; }
-  .why-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; }
-  .why-card { background: var(--surface); padding: 24px; border-radius: 12px; border: 1px solid var(--border); }
-  .why-card h3 { color: var(--primary); margin-bottom: 12px; font-size: 18px; }
-  .pricing { max-width: 1000px; margin: 80px auto; padding: 0 24px; }
-  .pricing-header { text-align: center; margin-bottom: 48px; }
-  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; align-items: start; }
-  .tier { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 32px; position: relative; }
-  .tier.popular { border-color: var(--primary); box-shadow: 0 0 30px rgba(59, 130, 246, 0.15); }
-  .popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--primary); color: white; font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; }
-  .price-amount { font-size: 36px; font-weight: 800; margin: 16px 0; }
-  .features { list-style: none; margin: 24px 0; }
-  .features li { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; display: flex; align-items: flex-start; }
-  .features li::before { content: '✓'; color: var(--primary); margin-right: 8px; font-weight: bold; }
-  .btn-tier { width: 100%; padding: 14px; border-radius: 8px; font-weight: 600; font-size: 15px; cursor: pointer; border: 1px solid var(--primary); background: transparent; color: var(--primary); display: block; margin-bottom: 10px; text-align: center; }
-  .tier.popular .btn-tier { background: var(--primary); color: white; }
-  footer { border-top: 1px solid var(--border); padding: 40px 24px; text-align: center; color: var(--text-muted); font-size: 12px; }
+:root{--ink:#14262b;--muted:#4b5f63;--paper:#f6f8f7;--panel:#ffffff;--line:#d3dcd9;--accent:#0b5d5b;--accent-ink:#ffffff;--warn:#8a4b08;--warn-bg:#fdf3e4;
+ --serif:"Newsreader",Georgia,"Times New Roman",serif;--sans:"Public Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--ink:#e8f0ee;--muted:#a3b6b3;--paper:#0f1a1c;--panel:#162427;--line:#2a3d40;--accent:#5cc4bd;--accent-ink:#0f1a1c;--warn:#f0b86b;--warn-bg:#2a2013}}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 17px/1.6 var(--sans);padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+.wrap{max-width:1040px;margin:0 auto;padding:0 22px}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+header{padding:20px 0;border-bottom:1px solid var(--line)}
+header .wrap{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.logo{font:600 22px var(--serif);letter-spacing:.2px;text-decoration:none;color:var(--ink)}
+header nav a{margin-left:20px;font-size:15px;color:var(--muted);text-decoration:none}
+header nav a:hover{color:var(--ink)}
+.hero{padding:64px 0 56px;display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+h1{font:600 clamp(34px,5.2vw,54px)/1.08 var(--serif);margin:0 0 18px;letter-spacing:-.5px}
+.lede{font-size:19px;color:var(--muted);max-width:34em;margin:0 0 26px}
+.btn{display:inline-block;background:var(--accent);color:var(--accent-ink);font:600 16px var(--sans);padding:14px 22px;border-radius:6px;text-decoration:none;border:2px solid var(--accent)}
+.btn:hover{filter:brightness(1.1)}
+.btn.alt{background:transparent;color:var(--accent)}
+.cta-row{display:flex;gap:12px;flex-wrap:wrap}
+.fine{font-size:14px;color:var(--muted);margin-top:14px}
+.record{background:var(--panel);border:1px solid var(--line);border-left:5px solid var(--accent);border-radius:4px;padding:20px 22px;font-size:15px}
+.record h2{font:600 13px var(--sans);margin:0 0 12px;color:var(--muted)}
+.record dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 16px}
+.record dt{color:var(--muted)}
+.record dd{margin:0;font-weight:500}
+.record p{margin:14px 0 0;font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px}
+section{padding:56px 0;border-top:1px solid var(--line)}
+h2.s{font:600 clamp(26px,3.6vw,36px)/1.15 var(--serif);margin:0 0 14px;letter-spacing:-.3px}
+.sub{color:var(--muted);max-width:40em;margin:0 0 30px}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.plan{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:24px;display:flex;flex-direction:column}
+.plan.main{border:2px solid var(--accent)}
+.plan h3{font:600 22px var(--serif);margin:0 0 4px}
+.price{font:600 28px var(--sans);margin:6px 0 14px}
+.price small{font-size:14px;font-weight:400;color:var(--muted)}
+.plan ul{padding-left:20px;margin:0 0 20px;flex:1}
+.plan li{margin-bottom:6px}
+.plan .btn{text-align:center}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:32px}
+.two h3{font:600 20px var(--serif);margin:0 0 10px}
+.two ul{margin:0;padding-left:20px}
+.two li{margin-bottom:8px}
+.notice{background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:16px 20px;font-size:15px;margin-top:28px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;padding:0;margin:0;list-style:none}
+.chips li{border:1px solid var(--line);background:var(--panel);border-radius:20px;padding:5px 14px;font-size:14px}
+footer{padding:34px 0 44px;border-top:1px solid var(--line);font-size:14px;color:var(--muted)}
+footer p{max-width:60em;margin:0 0 10px}
+@media (max-width:820px){.hero,.cols,.two{grid-template-columns:1fr}.hero{padding-top:40px}header nav{display:none}}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
+<header><div class="wrap"><a class="logo" href="#top">ActumGuard</a><nav><a href="#plans">Plans</a><a href="#honest">What this is</a></nav></div></header>
 
-<div class="banner">⚠️ Don't lose your next enterprise contract. Get RFP-ready for AI compliance.</div>
-
-<nav><div class="logo">Actum<span>Guard</span>.</div></nav>
-
-<div class="hero">
-  <h1>Your clients are asking for AI policies.<br>Can you prove you have one?</h1>
-  <p>General AI platforms can write a generic document. ActumGuard provides a defensible, jurisdiction-specific audit trail that proves human oversight to regulators, insurers, and enterprise procurement teams.</p>
-  <a href="https://actumguard.onrender.com" class="btn-hero">Run the Free AI Risk Scan</a>
+<main id="top">
+<div class="wrap hero">
+ <div>
+  <h1>Your clients are asking about your AI policy. Have an answer ready.</h1>
+  <p class="lede">ActumGuard helps small businesses find which AI rules may apply to them, then build the policy, tool inventory and human-review records that clients, insurers and regulators ask to see.</p>
+  <div class="cta-row">
+   <a class="btn" href="https://actumguard.onrender.com">Run the free risk scan</a>
+   <a class="btn alt" href="#plans">See plans</a>
+  </div>
+  <p class="fine">Eight questions. Free. No card needed.</p>
+ </div>
+ <aside class="record" aria-label="Example record">
+  <h2>Example record: AI use policy</h2>
+  <dl>
+   <dt>Document</dt><dd>AI Acceptable Use Policy, v2</dd>
+   <dt>Approved by</dt><dd>Managing director</dd>
+   <dt>Approved on</dt><dd>Date recorded at sign-off</dd>
+   <dt>Staff briefed</dt><dd>Date and attendee list</dd>
+   <dt>Next review</dt><dd>Set at approval</dd>
+  </dl>
+  <p>This is the kind of dated record a procurement team or regulator may ask for. The layout is illustrative.</p>
+ </aside>
 </div>
 
-<div class="why-section">
-  <h2 style="text-align: center; margin-bottom: 40px;">Why ActumGuard vs. General AI Tools?</h2>
-  <div class="why-grid">
-    <div class="why-card">
-      <h3>1. Audit Trails vs. Text Files</h3>
-      <p>General AI tools give you a generic Word document. ActumGuard gives you an Evidence Vault. We track who approved the policy, when it was deployed, and how employees were trained. If you get audited, a PDF from a public AI won't save you. An audit trail will.</p>
-    </div>
-    <div class="why-card">
-      <h3>2. Human-Reviewed Laws</h3>
-      <p>AI platforms can hallucinate legal advice. Our rules engine is built on hard-coded, human-reviewed regulatory updates across 12 jurisdictions (POPIA, EU AI Act, US ADMT). We don't guess; we map your specific business behavior to enacted laws.</p>
-    </div>
-    <div class="why-card">
-      <h3>3. Sales Enablement</h3>
-      <p>You aren't buying this to avoid a fine; you're buying this to win contracts. Enterprise clients (like banks and government) will reject your RFP if you can't prove AI governance. ActumGuard gets you RFP-ready in 5 minutes.</p>
-    </div>
+<section id="plans"><div class="wrap">
+ <h2 class="s">Start free. Pay only when you need the documents.</h2>
+ <p class="sub">Each plan builds on the last. None of them is legal advice, and none guarantees how a client or regulator will respond.</p>
+ <div class="cols">
+  <div class="plan">
+   <h3>Free risk scan</h3>
+   <div class="price">R0 <small>/ $0</small></div>
+   <ul><li>Eight questions about how you use AI</li><li>A directional risk score</li><li>A list of laws and rules that may apply to you</li></ul>
+   <a class="btn alt" href="https://actumguard.onrender.com">Start the scan</a>
   </div>
-</div>
-
-<div class="pricing" id="pricing">
-  <div class="pricing-header">
-    <h2>Protect your business.</h2>
-    <p>Choose the level of protection your business needs.</p>
+  <div class="plan">
+   <h3>Instant AI policy</h3>
+   <div class="price">R299 <small>/ $19</small></div>
+   <ul><li>A first-draft AI use policy based on your answers</li><li>Drafted by AI from a structured template</li><li>Emailed to you to review and edit before you adopt it</li></ul>
+   <!-- TODO: point this button at your policy checkout link -->
+   <a class="btn alt" href="#policy-checkout">Get the draft policy</a>
   </div>
-  
-  <div class="pricing-grid">
-    <!-- Free Tier -->
-    <div class="tier">
-      <h3>Free Risk Scan</h3>
-      <div class="price-amount">R0</div>
-      <ul class="features">
-        <li>8-question AI assessment</li>
-        <li>Instant directional risk score</li>
-        <li>List of applicable laws</li>
-      </ul>
-      <a href="https://actumguard.onrender.com" style="text-decoration:none;"><button class="btn-tier">Start Free</button></a>
-    </div>
-
-    <!-- Starter Pack -->
-    <div class="tier popular">
-      <div class="popular-badge">Most Popular</div>
-      <h3>Starter Pack</h3>
-      <div class="price-amount">R899 <span>/ $49</span></div>
-      <ul class="features">
-        <li><b>AI Inventory Template</b></li>
-        <li><b>Acceptable Use Policy</b></li>
-        <li><b>Vendor DPA Questionnaire</b></li>
-        <li><b>30-Day Implementation Plan</b></li>
-        <li><b>Evidence Vault setup guide</b></li>
-      </ul>
-      <a href="https://whop.com/actumguard-live-pages-dev/actumguard-starter-pack" target="_blank" style="text-decoration: none;">
-        <button class="btn-tier" style="width: 100%;">Buy Instantly (Card)</button>
-      </a>
-    </div>
-
-    <!-- Instant Policy (DeepSeek) -->
-    <div class="tier">
-      <h3>Instant AI Policy</h3>
-      <div class="price-amount">R299 <span>/ $19</span></div>
-      <ul class="features">
-        <li><b>Custom AI Use Policy</b> for your business</li>
-        <li>Generated instantly by DeepSeek AI</li>
-        <li>Emailed to you immediately</li>
-        <li>Perfect for satisfying client demands</li>
-      </ul>
-      <button class="btn-tier" onclick="payWithPaystack(29900, 'Instant AI Policy')">Generate Policy Now</button>
-    </div>
+  <div class="plan main">
+   <h3>Starter pack</h3>
+   <div class="price">R899 <small>/ $49</small></div>
+   <ul><li>AI inventory template</li><li>Acceptable use policy</li><li>Vendor questionnaire for your AI suppliers</li><li>30-day implementation plan</li><li>Evidence vault setup guide</li></ul>
+   <a class="btn" href="https://whop.com/actumguard-live-pages-dev/actumguard-starter-pack">Buy the starter pack</a>
   </div>
-</div>
+ </div>
+</div></section>
 
-<footer>
-  <p><b>ActumGuard</b> is not a law firm and does not provide legal advice. Assessments are directional risk-management tools, not legal opinions.</p>
-</footer>
+<section><div class="wrap">
+ <h2 class="s">Why not just ask a chatbot for a policy?</h2>
+ <p class="sub">You can, and a chatbot can draft text. Drafting is the easy part. The harder part is what happens around the text.</p>
+ <div class="two">
+  <div>
+   <h3>What ActumGuard adds</h3>
+   <ul>
+    <li>A scan that points to the rules relevant to your sector and countries.</li>
+    <li>An inventory of every AI tool you use, so nothing is missed.</li>
+    <li>A vendor questionnaire to ask your AI suppliers the questions regulators care about.</li>
+    <li>A plan and a record of who approved what, and when.</li>
+   </ul>
+  </div>
+  <div>
+   <h3>What it does not do</h3>
+   <ul>
+    <li>It does not replace a lawyer.</li>
+    <li>It does not run bias audits. Some laws require an independent auditor.</li>
+    <li>It does not promise any outcome with a client, insurer or regulator.</li>
+   </ul>
+  </div>
+ </div>
+</div></section>
 
-<script>
-function payWithPaystack(amount, planName) {
-    const paystack = new PaystackPop();
-    paystack.newTransaction({
-        key: 'pk_test_c77eb2b404c47451da4fcf75364a336d4baaa9e3', // <--- REPLACE THIS WITH YOUR PUBLIC KEY
-        email: prompt("Please enter your email address for your receipt:", ""),
-        amount: amount, 
-        currency: 'ZAR',
-        metadata: {
-            custom_fields: [
-                { display_name: "Product", variable_name: "product", value: planName }
-            ]
-        },
-        onSuccess: (transaction) => {
-            alert(`Payment successful! Reference: ${transaction.reference}. We are generating your document and emailing it to you now.`);
-        },
-        onCancel: () => { alert('Payment cancelled.'); }
-    });
-}
-</script>
+<section id="honest"><div class="wrap">
+ <h2 class="s">What the scan looks at</h2>
+ <p class="sub">The scan matches your answers to a set of AI and data rules. It currently includes:</p>
+ <!-- TODO: edit this list so it matches exactly what the scan covers today -->
+ <ul class="chips">
+  <li>POPIA (South Africa)</li><li>EU AI Act</li><li>UK GDPR</li><li>EU GDPR</li><li>NYC Local Law 144</li><li>Colorado AI Act</li><li>US Fair Housing Act</li>
+ </ul>
+ <p class="fine">Laws and their start dates change often. Each rule in the scan should show when it was last reviewed. Confirm anything that matters with a qualified lawyer in your jurisdiction.</p>
+ <div class="notice"><strong>Who this is for.</strong> Small businesses that use AI for hiring, customer decisions, scheduling or chat and need to show they have thought about the risks. If you handle regulated health or financial data at scale, use this as a starting point and involve counsel early.</div>
+</div></section>
+</main>
+
+<footer><div class="wrap">
+ <p><strong>ActumGuard</strong> is not a law firm and does not provide legal advice. Scans and documents are risk-management aids, not legal opinions, and do not guarantee compliance or any regulatory outcome.</p>
+ <p>When you use the free scan or buy a document, your answers are processed to produce your results. See our privacy notice for the providers we use and where your data is stored.</p>
+</div></footer>
 </body>
-        </html>
+                                                              </html>
