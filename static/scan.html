@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ActumGuard: Free AI risk scan</title>
+<style>
+body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#0f1a1c;color:#e8f0ee;margin:0;padding:20px;line-height:1.55}
+.wrap{max-width:640px;margin:0 auto}
+h1{font-size:26px;margin:0 0 4px}p{color:#a3b6b3}
+label{display:block;margin:16px 0 4px;font-size:14px}
+input[type=email],select{width:100%;padding:12px;border-radius:8px;border:1px solid #2a3d40;background:#162427;color:#e8f0ee;font-size:16px}
+.chk{display:flex;gap:8px;align-items:flex-start;margin:8px 0;font-size:15px;color:#d2dedb}
+.chk input{margin-top:5px}
+fieldset{border:1px solid #2a3d40;border-radius:8px;padding:10px 14px;margin:16px 0}
+legend{font-size:14px;padding:0 6px}
+.grp{max-height:260px;overflow:auto}
+.gt{display:block;margin:12px 0 4px;color:#5cc4bd;font-weight:600;font-size:13px}
+button{width:100%;padding:14px;border:0;border-radius:8px;background:#5cc4bd;color:#0f1a1c;font-size:16px;font-weight:600;margin-top:16px;cursor:pointer}
+button:disabled{opacity:.6}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #5cc4bd;outline-offset:2px}
+.card{background:#162427;border:1px solid #2a3d40;border-radius:10px;padding:16px;margin-top:14px}
+.b{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700;margin-right:6px}
+.high{background:#3a1518;color:#ff8f8f}.medium{background:#3a2e15;color:#f0b86b}.low{background:#153a26;color:#5fd9a0}.critical{background:#4a0f0f;color:#ffb0b0}
+.gap{background:#2a2013;color:#f0b86b}.ver{background:#223033;color:#a3b6b3}
+.small{font-size:13px;color:#a3b6b3}.err{color:#ff8f8f;margin-top:10px}
+a{color:#5cc4bd}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Free AI risk scan</h1>
+<p>Answer a few questions to see which AI and data rules may apply to you. This is not legal advice.</p>
+<div id="form">
+<label for="email">Email (we send nothing without your consent)</label>
+<input id="email" type="email" autocomplete="email" placeholder="you@company.com">
+<label for="industry">Industry</label>
+<select id="industry"></select>
+<fieldset><legend>Where do you operate? Select all that apply.</legend><div class="grp" id="places"></div></fieldset>
+<fieldset><legend>How do you use AI?</legend>
+<div class="chk"><input type="checkbox" id="uses_ai_in_employment"><label for="uses_ai_in_employment">We use AI to screen, rank or decide on job candidates or staff.</label></div>
+<div class="chk"><input type="checkbox" id="uses_ai_for_consumer_decisions"><label for="uses_ai_for_consumer_decisions">We use AI to make or influence decisions about customers, tenants or patients.</label></div>
+<div class="chk"><input type="checkbox" id="uses_chatbots"><label for="uses_chatbots">We use chatbots or AI agents that talk to people.</label></div>
+<div class="chk"><input type="checkbox" id="collects_sensitive_data"><label for="collects_sensitive_data">We process sensitive personal data, such as health or biometric data.</label></div>
+</fieldset>
+<fieldset><legend>What do you already have in place?</legend>
+<div class="chk"><input type="checkbox" id="has_vendor_contracts"><label for="has_vendor_contracts">Written data agreements with our AI vendors.</label></div>
+<div class="chk"><input type="checkbox" id="has_human_review_process"><label for="has_human_review_process">A documented process for a person to review AI decisions.</label></div>
+</fieldset>
+<div class="chk"><input type="checkbox" id="consent"><label for="consent">I agree to ActumGuard storing my email and answers to produce this scan. <!-- TODO: link your privacy notice here --></label></div>
+<button id="go">Run the scan</button>
+<div class="err" id="err" role="alert"></div>
+</div>
+<div id="out"></div>
+<p class="small">ActumGuard is not a law firm and does not provide legal advice. Results are directional and do not guarantee compliance or any regulatory outcome.</p>
+</div>
+<script>
+const INDUSTRIES=["Accounting / professional services","Logistics / supply chain","Private education / training","Healthcare (administrative)","Recruitment","Insurance","Property","Legal","Other"];
+const PLACES={"Africa":[["ZA","South Africa"],["NG","Nigeria"],["KE","Kenya"],["EG","Egypt"]],
+"Europe":[["EU","European Union"],["UK","United Kingdom"]],
+"North America":[["US","United States (federal)"],["US-CO","USA: Colorado"],["US-NY-NYC","USA: New York City"],["US-IL","USA: Illinois"],["CA","Canada"]],
+"South America":[["BR","Brazil"],["CL","Chile"]],
+"Asia":[["KR","South Korea"],["CN","China"],["IN","India"],["JP","Japan"]],
+"Oceania":[["AU","Australia"],["NZ","New Zealand"]]};
+const $=id=>document.getElementById(id);
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!==undefined)e.textContent=x;return e};
+INDUSTRIES.forEach(i=>{const o=el("option",null,i);o.value=i;$("industry").append(o)});
+Object.entries(PLACES).forEach(([g,list])=>{$("places").append(el("span","gt",g));
+ list.forEach(([code,name])=>{const d=el("div","chk"),i=el("input");i.type="checkbox";i.className="jur";i.value=code;i.id="j-"+code;
+  const l=el("label",null,name);l.htmlFor=i.id;d.append(i,l);$("places").append(d)})});
+const FIELDS=["uses_ai_in_employment","uses_ai_for_consumer_decisions","collects_sensitive_data","uses_chatbots","has_vendor_contracts","has_human_review_process"];
+$("go").onclick=async()=>{
+ $("err").textContent="";const btn=$("go");btn.disabled=true;
+ const body={email:$("email").value.trim(),consent:$("consent").checked,industry:$("industry").value,
+  jurisdictions:[...document.querySelectorAll(".jur:checked")].map(x=>x.value)};
+ FIELDS.forEach(f=>body[f]=$(f).checked);
+ if(!body.jurisdictions.length){$("err").textContent="Select at least one place where you operate.";btn.disabled=false;return}
+ if(!body.consent){$("err").textContent="Please tick the consent box to continue.";btn.disabled=false;return}
+ try{
+  const r=await fetch("/api/scan",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  const d=await r.json();
+  if(!r.ok){$("err").textContent=typeof d.detail==="string"?d.detail:"Check your email address and answers, then try again.";btn.disabled=false;return}
+  render(d);
+ }catch(e){$("err").textContent="Could not reach the server. Try again in a moment.";btn.disabled=false}
+};
+function render(d){
+ $("form").hidden=true;const out=$("out");out.replaceChildren();
+ const head=el("div","card");head.append(el("h2",null,"Exposure: "+d.exposure+" (directional score "+d.risk_score+")"),
+  el("p","small","Based on your answers and our rule set version "+d.rules_version+". The score depends partly on how many places you selected."));
+ out.append(head);
+ if(!d.findings.length)out.append(el("div","card",null)).lastChild.textContent="No matching rules found for your answers. That does not mean you have no obligations.";
+ d.findings.forEach(f=>{const c=el("div","card");
+  c.append(el("span","b "+f.severity,f.severity.toUpperCase()));
+  if(f.type==="Confirmed Gap")c.append(el("span","b gap","GAP YOU REPORTED"));
+  c.append(el("span","b ver",f.verification.status==="reviewed"?"Reviewed "+f.verification.last_reviewed:"Not yet lawyer-reviewed"));
+  c.append(el("h3",null,f.title),el("p",null,f.detail),el("strong",null,"Next steps"));
+  const ul=el("ul");f.remediation.forEach(x=>ul.append(el("li",null,x)));c.append(ul);out.append(c)});
+ out.append(el("p","small",d.disclaimer));
+}
+</script>
+</body>
+</html>
